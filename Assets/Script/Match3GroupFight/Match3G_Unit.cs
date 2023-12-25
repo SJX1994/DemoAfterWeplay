@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Match3G_PlayerData;
 using DG.Tweening;
+using UnityEngine.Rendering.PostProcessing;
+
 public class Match3G_Unit : MonoBehaviour
 {
 # region 数据对象
@@ -36,6 +38,14 @@ public class Match3G_Unit : MonoBehaviour
             return floatingScorePrefab; 
         } 
     }
+    SpriteRenderer spriteRenderer_unit;
+    SpriteRenderer SpriteRenderer_unit 
+    { 
+        get 
+        {       
+            return spriteRenderer_unit; 
+        } 
+    }
     [System.Serializable]
 	struct FallingState
 	{
@@ -43,6 +53,20 @@ public class Match3G_Unit : MonoBehaviour
 	}
 
 	FallingState falling;
+    SingleEnegy gainScore;
+    private PostProcessVolume postProcessVolume; 
+    PostProcessVolume PostProcessVolume
+    {
+        get
+        {
+            if(!postProcessVolume)
+            {
+                postProcessVolume = FindObjectOfType<PostProcessVolume>();
+            }
+            return postProcessVolume;
+        }
+    }
+    private Bloom bloom; 
 # endregion 数据对象
 # region 数据关系
     public void Spawn ()
@@ -50,6 +74,7 @@ public class Match3G_Unit : MonoBehaviour
         // template_Numerical = Instantiate(template_Numerical);
 		disappearProgress = -1f;
         falling.progress = -1f;
+        spriteRenderer_unit = transform.GetComponentInChildren<SpriteRenderer>();
 	}
     void Update ()
     {
@@ -59,10 +84,24 @@ public class Match3G_Unit : MonoBehaviour
     
 # endregion 数据关系
 # region 数据操作
-    SingleEnegy gainScore;
+    
+    public void TurnChange()
+    {
+        Color trunColor = new Color(1f,1f,1f,1f);
+        Color otherTurnColor = new Color(1f,1f,1f,0.5f);
+        if(!SpriteRenderer_unit)return;
+        if(Match3G_GroupInfo.Game.WhichGroupTurn == groupType)
+        {
+            if(SpriteRenderer_unit.color == trunColor)return;
+            SpriteRenderer_unit.color = trunColor;
+        }else
+        {
+            if(SpriteRenderer_unit.color == otherTurnColor)return;
+            SpriteRenderer_unit.color = otherTurnColor;
+        }
+    }
     public void Gain(Match3G_Group to,int gainIndex)
     {
-
         gainScore = new SingleEnegy{
             positionFrom = transform.position,
             positionTo = to.Egg.transform.position,
@@ -71,7 +110,14 @@ public class Match3G_Unit : MonoBehaviour
         };
         Invoke(nameof(Gain_View),gainIndex * 0.25f);
     }
-    
+    public void HideAfterOccupied()
+    {
+        Match3G_GroupInfo.Game.Match.OnTurnSwitch -= TurnChange;
+        Tween scaleTween = transform.DOScale(1.3f,0.5f).SetEase(Ease.InBounce);
+        scaleTween.onComplete += () => {
+            DestoryUnit();
+        };
+    }
     void Gain_View()
     {
         Gain_Logic();
@@ -127,16 +173,44 @@ public class Match3G_Unit : MonoBehaviour
 		enabled = true;
 		return falling.duration;
 	}
-    public void MoveToHealthBar(Vector3 pos,Match3G_Group from)
+    Tween tween_PostProcess;
+    Tween backTween_PostProcess;
+    public void MoveToHealthBar(Vector3 pos,Match3G_Group to,int index = 0)
     {
         Tween t = transform.DOMove(pos, disappearDuration-Random.Range(0.01f,disappearDuration-0.01f)).SetEase(Ease.InSine);
         t.onComplete += () => {
-            from.Shake.ShakeObjectScale();
+            to.Shake.ShakeObjectScale();
             string Particle_Hit = "Effect_Explosion";
             ParticleLoader.Instance.PlayParticleTemp(Particle_Hit,pos, new Vector3(-90,0,0));
-            from.Numerical.CurrentHP = -1 -template_Numerical.attackPower;
-            Camera.main.GetComponent<Shake>().ShakeObjectPosition();
+            to.Numerical.CurrentHP = -1 -template_Numerical.attackPower;
+            Shake shakeCam = Camera.main.GetComponent<Shake>();
+            shakeCam.Shake_strength += 0.01f * (float)index;
+            shakeCam.ShakeObjectPosition();
         };
+        PostProcessVolume.profile.TryGetSettings(out bloom);
+        if (!bloom)return;
+        tween_PostProcess?.Kill();
+        backTween_PostProcess?.Kill();
+        float initialIntensity = 0f;
+        float targetIntensity = 6f + index * 0.5f;
+        float duration = 1f;
+        bloom.intensity.value = initialIntensity;
+        bloom.color.value = Match3G_GroupInfo.groupTurn == Match3G_GroupInfo.GroupType.GroupA? Color.blue + Color.white*0.6f: Color.red + Color.white*0.6f;
+        tween_PostProcess = DOTween.To(() => bloom.intensity.value,
+                                 value => bloom.intensity.value = value,
+                                 targetIntensity,
+                                 duration/2);
+        tween_PostProcess.SetEase(Ease.OutBounce);
+        tween_PostProcess.onComplete += () => {
+            backTween_PostProcess = DOTween.To(() => bloom.intensity.value,
+                                 value => bloom.intensity.value = value,
+                                 initialIntensity,
+                                 duration/2);
+            backTween_PostProcess.SetEase(Ease.InSine); 
+        };
+        
+        
+        
     }
     public float Disappear ()
 	{
@@ -166,6 +240,7 @@ public class Match3G_Unit : MonoBehaviour
     {
         Rigidbody.mass = 0.5f;
         Rigidbody.AddForce(new Vector3( Random.Range(0f, 1f)*10f, Random.Range(0f, 1f)*10f,Random.Range(-0.5f, -1f)*50f));
+        Destroy(gameObject,3f);
     }
     
     void Update_Falling()
@@ -202,6 +277,10 @@ public class Match3G_Unit : MonoBehaviour
 			transform.localScale = Vector3.one * (1.5f - disappearProgress / disappearDuration);
 				
 		}
+    }
+    void DestoryUnit()
+    {
+        Destroy(gameObject);
     }
 # endregion 数据操作
 }

@@ -13,6 +13,15 @@ public class Match3G_Manager : MonoBehaviour
     public bool NeedsFilling
 	{ get; private set; }
     public bool IsPlaying => IsBusy || PossibleMove.IsValid;
+    Match3G_Manager_UI ui;
+    public Match3G_Manager_UI UI 
+    { 
+        get 
+        { 
+            if (ui == null) 
+                ui = FindObjectOfType<Match3G_Manager_UI>();
+            return ui; } 
+    }
     Match3G_Manager_Match match;
     public Match3G_Manager_Match Match 
     { 
@@ -52,6 +61,7 @@ public class Match3G_Manager : MonoBehaviour
         }
         set
         {
+            if(value == Match3G_GroupInfo.groupTurn)return;
             Match3G_GroupInfo.groupTurn = value;
             Match.TakeTheTurn();
         }
@@ -102,5 +112,12 @@ public class Match3G_Manager : MonoBehaviour
         {GroupA.AttackSettlement();}
         else
         {GroupB.AttackSettlement();}
+    }
+    public void AttackSettlementByOccupied()
+    {
+        if(WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA)
+        {GroupA.AttackSettlementByOccupied();}
+        else
+        {GroupB.AttackSettlementByOccupied();}
     }
 }

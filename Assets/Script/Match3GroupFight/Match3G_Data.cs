@@ -11,8 +11,17 @@ namespace Match3G_PlayerData
     {
         None, Freezed, A, B, C, D, E, F, G
     }
+    public class Match3G_Tool
+    {
+        public static float Remap(float input, float oldLow, float oldHigh, float newLow, float newHigh)
+        {
+            float t = Mathf.InverseLerp(oldLow, oldHigh, input);
+            return Mathf.Lerp(newLow, newHigh, t);
+        }
+    }
     public class Match3G_GroupInfo
     {
+        public static int round = 0;
         public const int TileStateStart = (int)TileState.A;
         private static Match3G_Manager game;
         public static Match3G_Manager Game 
@@ -22,6 +31,15 @@ namespace Match3G_PlayerData
                 if (game == null) 
                     game = GameObject.FindObjectOfType<Match3G_Manager>();
                 return game; } 
+        }
+        private static Match3G_Manager_UI ui;
+        public static Match3G_Manager_UI UI 
+        { 
+            get 
+            { 
+                if (ui == null) 
+                    ui = GameObject.FindObjectOfType<Match3G_Manager_UI>();
+                return ui; } 
         }
         private static bool showMask = false;
         public static bool ShowMask
@@ -43,6 +61,24 @@ namespace Match3G_PlayerData
             GroupA,
             GroupB,
             NotReady
+        }
+        public static Match3G_Group CurrentGroup
+        {
+            get
+            {
+                if(groupTurn == GroupType.GroupA)
+                {
+                    return Game.GroupA;
+                }
+                else if(groupTurn == GroupType.GroupB)
+                {
+                    return Game.GroupB;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
     }
     public enum MoveDirection
@@ -257,7 +293,8 @@ namespace Match3G_PlayerData
                 for (c.x = 0; c.x < s.x; c.x++)
                 {
                     TileState t = game[c];
-
+                    if(t == TileState.Freezed)continue;
+                    
                     if (c.x >= 3 && game[c.x - 2, c.y] == t && game[c.x - 3, c.y] == t)
                     {
                         return new Move(c, MoveDirection.Left);
@@ -383,6 +420,7 @@ namespace Match3G_PlayerData
 
         public float Swap (Match3G_Unit a, Match3G_Unit b, bool pingPong)
         {
+            if(a.tileState == TileState.Freezed || b.tileState == TileState.Freezed)return 0f;
             tileA = a;
             tileB = b;
             positionA = a.transform.localPosition;

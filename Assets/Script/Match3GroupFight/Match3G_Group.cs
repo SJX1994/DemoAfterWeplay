@@ -128,6 +128,7 @@ public class Match3G_Group : MonoBehaviour
     List<Match> matches = new();
     public List<Match3G_Unit> gainUnits = new();
     
+    
 #endregion 数据对象
 
 #region 数据关系
@@ -138,11 +139,26 @@ public class Match3G_Group : MonoBehaviour
         OtherGroup.SoldiersGain_Logic();
         OtherGroup.SoldiersGain_View();
     }
+    public void OccupiedSoldiersGain()
+    {
+        
+        
+        OccupiedSoldiersGain_Logic();
+        OccupiedSoldiersGain_View();
+        
+        
+    }
     public void AttackSettlement()
     {
        gainUnits.Clear();
        OtherGroup.ReduceHealth_Logic();
        OtherGroup.ReduceHealth_View();
+    }
+    public void AttackSettlementByOccupied()
+    {
+        ClearGainUnits();
+        OccupiedReduceHealth_Logic();
+        OccupiedReduceHealth_View();
     }
     public void TakeTheTurn()
     {
@@ -181,16 +197,19 @@ public class Match3G_Group : MonoBehaviour
         ProcessMatches_Logic();
         ProcessMatches_View();
     }
-    void AttackOtherGroup(int2 c,TileState t,bool isHorizontal)
+    void AttackOtherGroup(int2 c,TileState t,bool isHorizontal,bool isHero = false)
     {
         if(
             Manager.Flow.FSM.State == Match3G_Manager_Flow.States.AddEnergy
             || Manager.Flow.FSM.State == Match3G_Manager_Flow.States.HeroOnStage
         )
         {
-            AttackOtherGroup_Logic(c,t,isHorizontal);
+            
+            AttackOtherGroup_Logic(c,t,isHorizontal,isHero);
+            Unfreeze(c);
         }
     }
+    
     public Match3G_Egg_Hero_Cross.CrossAttackInfo Hero_CrossAttack(Match3G_Egg_Hero_Cross.CrossAttackInfo info)
     {
         Match3G_Egg_Hero_Cross.CrossAttackInfo infoOut = new();
@@ -214,35 +233,78 @@ public class Match3G_Group : MonoBehaviour
     }
 #endregion 数据关系
 #region 数据操作
-    
+    public bool isMaxStep()
+    {
+        return Numerical.ExhaustedStep;
+    }
+    void Unfreeze(int2 c)
+    {
+        if(
+            Manager.Flow.FSM.State == Match3G_Manager_Flow.States.AddEnergy
+            || Manager.Flow.FSM.State == Match3G_Manager_Flow.States.HeroOnStage
+        )
+        {
+            if(groupType == Match3G_GroupInfo.GroupType.GroupB)
+            {
+                c = new int2(c.x,5);
+                do
+                {
+                    c = new int2(c.x,c.y+1);
+                    if(!grid.AreValidCoordinates(c))return;
+                    if(!tiles[c])continue;
+                }
+                while(grid[c] != TileState.Freezed);
+
+            }else if(groupType == Match3G_GroupInfo.GroupType.GroupA)
+            {
+                c = new int2(c.x,6);
+                do
+                {
+                    c = new int2(c.x,c.y-1);
+                    if(!grid.AreValidCoordinates(c))return;
+                    if(!tiles[c])continue;
+                }
+                while(grid[c] != TileState.Freezed);
+            }
+            
+
+            grid[c] = TileState.None;
+            ClearedTileCoordinates.Add(c);
+            bases.Where(x => x.posID == new Vector2(c.x,c.y)).FirstOrDefault().MeshRendererSet(true);
+        }
+    }
+    void ClearGainUnits()
+    {
+        for(int i = 0; i < gainUnits.Count; i++)
+        {
+            if(!gainUnits[i])continue;
+            gainUnits[i].Disappear();
+        }
+        gainUnits.Clear();
+    }
     void CreatUnits_Logic()
     {
         grid = new(size); // 创建逻辑容器
-        // if(groupType == Match3G_GroupInfo.GroupType.GroupB)
-        // {
-        //     grid.CreateAdditionalCellInRow(1, TileState.None);
-        // }
         do
 		{
 			FillGrid(); // 填充网格 并 确保没有三联
 			PossibleMove = Move.FindMove(this);
 		}
 		while (!PossibleMove.IsValid);
+        ResetFreeze();
+       
+       
     }
     void CreatUnits_View()
     {   
         tiles = new(size); // 创建表现容器
-        // if(groupType == Match3G_GroupInfo.GroupType.GroupB)
-        // {
-        //     tiles.CreateAdditionalCellInRow(1, null);
-        // }
         for (int y = 0; y < grid.SizeY; y++)
 		{
 			for (int x = 0; x < grid.SizeX; x++)
 			{
                 TileState t = grid[x, y];
-                
-				tiles[x, y] = SpawnTile(t, x, y);
+                bool withBase = t == TileState.Freezed ? false : true;
+				tiles[x, y] = SpawnTile(t, x, y,withBase);
 			}
 		}
     }
@@ -251,6 +313,8 @@ public class Match3G_Group : MonoBehaviour
         Numerical.CurrentAC = 0;
         bases.ForEach(x => x.Turn());
         OtherGroup.bases.ForEach(x => x.TurnBack());
+        ResetFreeze();
+        OtherGroup.ResetFreeze();
     }
     void ReduceHealth_Logic()
     {
@@ -281,6 +345,39 @@ public class Match3G_Group : MonoBehaviour
             }
         }
     }
+    void OccupiedReduceHealth_Logic()
+    {
+        int fromY = 0;
+        int toY = 0;
+        if(groupType == Match3G_GroupInfo.GroupType.GroupA)
+        {
+            fromY = 0;
+            toY = grid.SizeY/2;
+        }else if(groupType == Match3G_GroupInfo.GroupType.GroupB)
+        {
+            fromY = 6;
+            toY = grid.SizeY;
+        }
+        for (int y = fromY; y < toY; y++)
+        {
+            for (int x = 0; x < grid.SizeX; x++)
+            {
+                if(grid[x,y] == TileState.Freezed)continue;
+                grid[x,y] = TileState.Freezed;
+                Match3G_Unit gainUnit = tiles[x,y];
+                gainUnits.Add(gainUnit);
+            }
+        }
+    }
+    void OccupiedReduceHealth_View()
+    {
+        for(int i = 0; i < gainUnits.Count; i++)
+        {
+            gainUnits[i].MoveToHealthBar(OtherGroup.Egg.transform.position,OtherGroup,i);
+            gainUnits[i].Disappear();
+        }
+        
+    }
     void SoldiersGain_Logic()
     {
         for (int y = 0; y < grid.SizeY; y++)
@@ -300,6 +397,37 @@ public class Match3G_Group : MonoBehaviour
         for(int i = 0; i < gainUnits.Count; i++)
         {
             gainUnits[i].Gain(OtherGroup,i);
+        }
+    }
+    void OccupiedSoldiersGain_Logic()
+    {
+        int fromY = 0;
+        int toY = 0;
+        if(groupType == Match3G_GroupInfo.GroupType.GroupA)
+        {
+            fromY = 0;
+            toY = grid.SizeY/2-1;
+        }else if(groupType == Match3G_GroupInfo.GroupType.GroupB)
+        {
+            fromY = 6;
+            toY = grid.SizeY;
+        }
+        for (int y = fromY; y < toY; y++)
+        {
+            for (int x = 0; x < grid.SizeX; x++)
+            {
+                if(grid[x,y] == TileState.Freezed)continue;
+                Match3G_Unit gainUnit = tiles[x,y];
+                gainUnits.Add(gainUnit);
+            }
+        }
+    }
+    void OccupiedSoldiersGain_View()
+    {
+        for(int i = 0; i < gainUnits.Count; i++)
+        {
+            if(!gainUnits[i])continue;
+            gainUnits[i].Gain(this,i);
         }
     }
     void FillGrid ()
@@ -354,28 +482,33 @@ public class Match3G_Group : MonoBehaviour
         u.transform.position = new Vector3(x, y, 0);
         u.transform.position += OffSet;
         u.Spawn();
-        if(!withBase)return u;
+        Manager.Match.OnTurnSwitch += u.TurnChange;
         Match3G_Base b = Instantiate(basePrefab);
         b.transform.position = new Vector3(x, y, +1f);
         b.posID = new Vector2Int(x, y);
         b.pairedUnit = u;
         b.transform.position += OffSet;
         b.midPos = b.transform.position;
+        b.MeshRendererSet(withBase);
+        b.Display_BasesCheckerboard();
         bases.Add(b);
         return u;
     }
     public Match3G_Unit SpawnTile(TileState tileState , int x , int y,Match3G_Unit[] unitPrefabs)
     {
+        if(tileState == TileState.None)tileState = TileState.Freezed;
         Match3G_Unit uPrefab = unitPrefabs.Where(x => x.tileState == tileState).First();
         Match3G_Unit u = Instantiate(uPrefab);
         u.transform.position = new Vector3(x, y, 0);
         u.transform.position += OffSet;
         u.Spawn();
+        Manager.Match.OnTurnSwitch += u.TurnChange;
         return u;
     }
     public bool EvaluateDrag (Vector3 start, Vector3 end)
 	{
 		float2 a = ScreenToTileSpace(start), b = ScreenToTileSpace(end);
+        
 		var move = new Move(
 			(int2)floor(a), (b - a) switch
 			{
@@ -411,12 +544,21 @@ public class Match3G_Group : MonoBehaviour
 		{
 			tiles[move.From] = b;
 			tiles[move.To] = a;
+            Numerical.CurrentStep += 1;
 		}
 	}
     public bool TryMove (Move move)
 	{
+        if(grid.AreValidCoordinates(move.From) && grid.AreValidCoordinates(move.To))
+        {
+            if(grid[move.From] == TileState.Freezed || grid[move.To] == TileState.Freezed)
+            {
+                return false;
+            }
+        }
+        
 		Manager.Numerical.enegyMultiplier = 1;
-
+        
 		grid.Swap(move.From, move.To);
 		if (FindMatches())
 		{
@@ -436,7 +578,7 @@ public class Match3G_Group : MonoBehaviour
 			for (int x = 1; x < size.x; x++)
 			{
 				TileState t = grid[x, y];
-				if (t == start)
+				if (t == start && t != TileState.Freezed)
 				{
 					length += 1;
 				}
@@ -463,7 +605,7 @@ public class Match3G_Group : MonoBehaviour
 			for (int y = 1; y < size.y; y++)
 			{
 				TileState t = grid[x, y];
-				if (t == start)
+				if (t == start && t != TileState.Freezed)
 				{
 					length += 1;
 				}
@@ -482,6 +624,7 @@ public class Match3G_Group : MonoBehaviour
 				matches.Add(new Match(x, size.y - length, length, false));
 			}
 		}
+
 		return HasMatches;
 	}
     void DropTiles_A_Logic()
@@ -603,15 +746,24 @@ public class Match3G_Group : MonoBehaviour
     {
         ClearedTileCoordinates.Clear();
         Manager.Numerical.ClearEnegys();
-		for (int m = 0; m < matches.Count; m++)
+        List<Match> realMatches = new();
+        for (int m = 0; m < matches.Count; m++)
 		{
-			Match match = matches[m];
+            Match match = matches[m];
+			int2 c = match.coordinates;
+            if(grid[c] == TileState.Freezed)continue;
+            realMatches.Add(match);
+        }
+        
+		for (int m = 0; m < realMatches.Count; m++)
+		{
+			Match match = realMatches[m];
 			int2 step = match.isHorizontal ? int2(1, 0) : int2(0, 1);
 			int2 c = match.coordinates;
 			for (int i = 0; i < match.length; c += step, i++)
 			{
                 
-				if (grid[c] != TileState.None)
+				if (grid[c] != TileState.None) 
 				{
                     AttackOtherGroup(c,grid[c],match.isHorizontal);
 					grid[c] = TileState.None;
@@ -623,7 +775,6 @@ public class Match3G_Group : MonoBehaviour
             int value = match.length;
             Manager.Numerical.AddEnegy(pos3,Egg.transform.position,value,Egg);
 		}
-
 		matches.Clear();
 		NeedsFilling = true;
     }
@@ -637,16 +788,20 @@ public class Match3G_Group : MonoBehaviour
             // Debug.Log("消除"+c);
 		}
     } 
-    void AttackOtherGroup_Logic(int2 c,TileState t,bool isHorizontal)
+    void AttackOtherGroup_Logic(int2 c,TileState t,bool isHorizontal,bool isHero = false)
     {
+        
         // 从下往上递增，从左往右递增
         if(groupType == Match3G_GroupInfo.GroupType.GroupB)
         {
-            c = new int2(c.x,-1);
+            // c = new int2(c.x,-1);
+            c = new int2(c.x,5);
             do
             {
+                // c = new int2(c.x,c.y+1);
                 c = new int2(c.x,c.y+1);
                 if(!OtherGroup.tiles.AreValidCoordinates(c))return;
+                if(!OtherGroup.tiles[c])continue;
             }
             while(OtherGroup.tiles[c].groupType == groupType);
 
@@ -657,24 +812,28 @@ public class Match3G_Group : MonoBehaviour
             {
                 c = new int2(c.x,c.y-1);
                 if(!OtherGroup.tiles.AreValidCoordinates(c))return;
+                if(!OtherGroup.tiles[c])continue;
             }
             while(OtherGroup.tiles[c].groupType == groupType);
         }
+        AttackOtherGroup_View(c,t);
         OtherGroup.grid[c] = TileState.None;
         OtherGroup.ClearedTileCoordinates.Add(c);
-        AttackOtherGroup_View(c,t);
     }
     void AttackOtherGroup_View(int2 c,TileState t)
     {
         if(!OtherGroup.tiles[c])return;
         // OtherGroup.tiles[c].MakeEnergy();
         OtherGroup.tiles[c].KnockedAway();
-        OtherGroup.tiles[c].Disappear();
+        // OtherGroup.tiles[c].Disappear();
         OtherGroup.tiles[c] = null;      
 		OtherGroup.tiles[c] = OtherGroup.SpawnTile(t, c.x, c.y,unitPrefabs);
+        if(!OtherGroup.tiles[c])return;
         Match3G_Base otherBase = OtherGroup.bases.Where(x => x.posID == new Vector2(c.x,c.y)).FirstOrDefault();
         otherBase.BeenOccupied();
-        otherBase.TempBase = basePrefab;
+        OtherGroup.tiles[c].Gain(this,1);
+        OtherGroup.tiles[c].HideAfterOccupied();
+        //otherBase.TempBase = basePrefab;
     }
     Match3G_Egg_Hero_SameColor.SameColorAttackInfo Hero_SameColorAttack_Logic(Match3G_Egg_Hero_SameColor.SameColorAttackInfo info)
     {
@@ -696,7 +855,7 @@ public class Match3G_Group : MonoBehaviour
         foreach(var m_base in basesFit)
         {
             int2 c = new int2((int)m_base.posID.x,(int)m_base.posID.y);
-            // AttackOtherGroup(c,grid[c],true);
+            // AttackOtherGroup(c,grid[c],true,isHero:true);
             Hero_clearedTileCoordinates.Add(c);
             infoOut.Info_targets.Add(m_base);
             grid[c] = TileState.None;
@@ -716,7 +875,8 @@ public class Match3G_Group : MonoBehaviour
                 int2 c = new int2(x,y);
                 if (Vector2Int.Distance(new Vector2Int(currentPosition.x,currentPosition.y), gridPosition) > info.Info_range)continue;
                 if(!grid.AreValidCoordinates(c))continue;
-                AttackOtherGroup(c,grid[c],true);
+                
+                AttackOtherGroup(c,grid[c],true,isHero:true);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
                 infoOut.Info_targets.Add(bases.Where(x => x.posID == new Vector2(c.x,c.y)).FirstOrDefault());
@@ -727,9 +887,10 @@ public class Match3G_Group : MonoBehaviour
     }
     Match3G_Egg_Hero_Cross.CrossAttackInfo Hero_CrossAttack_Logic(Vector2 posID, int horizontallyCount, int verticallyCount)
     {
+        bool isHero = true;
         Hero_clearedTileCoordinates.Clear();
         int2 c = new int2((int)posID.x, (int)posID.y);
-        AttackOtherGroup(c,grid[c],true);
+        AttackOtherGroup(c,grid[c],true,isHero);
         grid[c] = TileState.None;
         Hero_clearedTileCoordinates.Add(c);
         int leftCount = 0;
@@ -741,7 +902,8 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x+i, (int)posID.y);
             if(grid.AreValidCoordinates(c))
             {
-                AttackOtherGroup(c,grid[c],true);
+                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                AttackOtherGroup(c,grid[c],true,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
                 rightCount++;
@@ -749,7 +911,8 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x-i, (int)posID.y);
             if(grid.AreValidCoordinates(c))
             {
-                AttackOtherGroup(c,grid[c],true);
+                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                AttackOtherGroup(c,grid[c],true,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
                 leftCount++;
@@ -760,7 +923,8 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x, (int)posID.y+i);
             if(grid.AreValidCoordinates(c))
             {
-                AttackOtherGroup(c,grid[c],false);
+                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                AttackOtherGroup(c,grid[c],false,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
                 upCount++;
@@ -768,7 +932,8 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x, (int)posID.y-i);
             if(grid.AreValidCoordinates(c))
             {
-                AttackOtherGroup(c,grid[c],false);
+                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                AttackOtherGroup(c,grid[c],false,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
                 downCount++;
@@ -782,6 +947,7 @@ public class Match3G_Group : MonoBehaviour
         for (int i = 0; i < Hero_clearedTileCoordinates.Count; i++)
 		{
 			int2 c = Hero_clearedTileCoordinates[i];
+            if(!tiles[c])continue;
 			Manager.busyDuration = Mathf.Max(tiles[c].Disappear(), Manager.busyDuration);
 			tiles[c] = null;
             // Debug.Log("消除"+c);
@@ -792,6 +958,32 @@ public class Match3G_Group : MonoBehaviour
     void Filling_Delay()
     {
         NeedsFilling = true;
+    }
+    void ResetFreeze()
+    {
+        int fromY = 0;
+        int toY = 0;
+        if(groupType == Match3G_GroupInfo.GroupType.GroupA)
+        {
+            fromY = 0;
+            toY = grid.SizeY/2;
+        }else if(groupType == Match3G_GroupInfo.GroupType.GroupB)
+        {
+            fromY = 6;
+            toY = grid.SizeY;
+        }
+        
+        for (int y = fromY; y < toY; y++)
+        {
+            for (int x = 0; x < grid.SizeX; x++)
+            {
+                grid[x,y] = TileState.Freezed;
+                if(tiles.IsUndefined)continue;
+                if(tiles[x,y])continue;
+                tiles[x,y] = SpawnTile(TileState.Freezed, x, y,false);
+            }
+        }
+        
     }
 #endregion 数据操作
 }

@@ -39,7 +39,8 @@ public class Match3G_FloatingScore : MonoBehaviour
         positionFrom.z -= 3f;
         positionTo.z -= 3f;
         transform.position = positionFrom;
-        TextMesh.text = value.ToString();
+        TextMesh.text = "能量+" + value.ToString();
+        TextMesh.color = Color.blue + Color.white*0.6f;
         tween1 = transform.DOScale(1.5f,age/2).SetEase(Ease.OutBounce);
         tween2 = null;
         tween3 = null;

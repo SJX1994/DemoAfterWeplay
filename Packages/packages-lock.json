@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.unity.2d.sprite": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    },
     "com.unity.collab-proxy": {
       "version": "1.15.18",
       "depth": 0,
@@ -82,6 +88,13 @@
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.cn"
+    },
+    "com.unity.postprocessing": {
+      "version": "https://github.com/Unity-Technologies/PostProcessing.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "32c3155207d3fac4138b24af5c7e0e43805c6f2b"
     },
     "com.unity.services.core": {
       "version": "1.4.0",

@@ -2,9 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Match3G_PlayerData;
+using UnityEngine.Events;
 
 public class Match3G_Manager_Match : MonoBehaviour
 {
+    public UnityAction OnTurnSwitch;
     private Match3G_Manager game;
     public Match3G_Manager Game 
     { 
@@ -50,6 +52,7 @@ public class Match3G_Manager_Match : MonoBehaviour
         GroupA.CreatUnits();
         GroupB.CreatUnits();
         // WhichGroupTurn = Random.Range(0, 2) == 0 ? Match3G_GroupInfo.GroupType.GroupA : Match3G_GroupInfo.GroupType.GroupB;
+        WhichGroupTurn = Match3G_GroupInfo.GroupType.NotReady;
         WhichGroupTurn = Match3G_GroupInfo.GroupType.GroupB;
         Game.Mask.enabled = false;
     }
@@ -145,8 +148,9 @@ public class Match3G_Manager_Match : MonoBehaviour
     }
     public void TakeTheTurn()
     {
-        GroupA.SwitchTurnClear();
-        GroupB.SwitchTurnClear();
+        // GroupA.SwitchTurnClear();
+        // GroupB.SwitchTurnClear();
+        
         if(Match3G_GroupInfo.groupTurn == Match3G_GroupInfo.GroupType.GroupA)
         {
             GroupA.TakeTheTurn();
@@ -154,6 +158,7 @@ public class Match3G_Manager_Match : MonoBehaviour
         {
             GroupB.TakeTheTurn();
         }
+        OnTurnSwitch?.Invoke();
     }
 
 }

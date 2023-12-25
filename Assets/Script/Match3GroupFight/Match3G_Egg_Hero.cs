@@ -101,20 +101,25 @@ public class Match3G_Egg_Hero : MonoBehaviour
     void Used(Vector3 mousePosition)
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        bool hitUnit = Physics.Raycast(ray, out hit, Mathf.Infinity, targetMask_base);
-        if(!hitUnit)return;
+        // RaycastHit hit;
+        RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity, targetMask_base);
+        // bool hitUnit = Physics.Raycast(ray, out hit, Mathf.Infinity, targetMask_base);
+        if(hits.Length == 0)return;
         Match3G_Base base_3g;
-        hit.collider.transform.TryGetComponent(out base_3g);
-        if(!base_3g)return;
-        if(base_3g.groupType != Match3G_GroupInfo.GroupType.GroupB)return;
-        DoDifferentUsed(base_3g.posID,egg.groupType);
-        egg.Show();
-        OnUsing = false;
-        transform.DOScale(0.1f,0.25f).SetEase(Ease.InBounce).onComplete += () => 
+        foreach (RaycastHit hit in hits)
         {
-            Destroy(gameObject);
-        };
+            hit.collider.transform.TryGetComponent(out base_3g);
+            if(!base_3g)return;
+            if(base_3g.groupType != Match3G_GroupInfo.GroupType.GroupB)return;
+            DoDifferentUsed(base_3g.posID,egg.groupType);
+            egg.Show();
+            OnUsing = false;
+            transform.DOScale(0.1f,0.25f).SetEase(Ease.InBounce).onComplete += () => 
+            {
+                Destroy(gameObject);
+            };
+        }
+        Match3G_GroupInfo.CurrentGroup.Numerical.enegyMultiplier = 1;
     }
     void DoScaleDown()
     {
