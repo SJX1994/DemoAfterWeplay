@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Match3G_PlayerData;
 using UnityEngine.Events;
+using Unity.VisualScripting;
 
 public class Match3G_Manager_Match : MonoBehaviour
 {
@@ -46,6 +47,32 @@ public class Match3G_Manager_Match : MonoBehaviour
     }
     private bool ai_shouldWait = true;
     private float ai_timer = 0f;
+    private int continuousEliminationCount = 0;
+    int ContinuousEliminationCount 
+    { 
+        get 
+        { 
+            return continuousEliminationCount; 
+        } 
+        set 
+        { 
+            if(Game.Flow.FSM.State != Match3G_Manager_Flow.States.AddEnergy)return;
+            continuousEliminationCount = value;
+            if(continuousEliminationCount >= 4)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(2);
+            }
+            else if(continuousEliminationCount >= 3)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(1);
+            }
+            else if(continuousEliminationCount >= 2)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(0);
+            }
+        } 
+    }
+    
     public void Match_Start()
     {
         busyDuration = 0f;
@@ -62,6 +89,7 @@ public class Match3G_Manager_Match : MonoBehaviour
         if(!IsBusy)
         {
             HandleInput();
+            ContinuousEliminationCount = 0;
         }
 		DoWork();
         
@@ -138,11 +166,17 @@ public class Match3G_Manager_Match : MonoBehaviour
     }
     void ProcessMatches ()
     {
+        
         if(WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA)
         {
+            if(!Game.automaticPlay)
+            {
+                ContinuousEliminationCount++;
+            }
             GroupA.ProcessMatches();
         }else if(WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupB)
         {
+            ContinuousEliminationCount++;
             GroupB.ProcessMatches();
         }
     }

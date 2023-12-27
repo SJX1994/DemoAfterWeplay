@@ -315,6 +315,7 @@ public class Match3G_Group : MonoBehaviour
         OtherGroup.bases.ForEach(x => x.TurnBack());
         ResetFreeze();
         OtherGroup.ResetFreeze();
+        //FindObjectsOfType<Match3G_Unit>().ToList().ForEach(x => x.TurnChange());
     }
     void ReduceHealth_Logic()
     {
@@ -371,12 +372,19 @@ public class Match3G_Group : MonoBehaviour
     }
     void OccupiedReduceHealth_View()
     {
+        int totalDamage = 0;
         for(int i = 0; i < gainUnits.Count; i++)
         {
-            gainUnits[i].MoveToHealthBar(OtherGroup.Egg.transform.position,OtherGroup,i);
+            totalDamage += gainUnits[i].MoveToHealthBar(OtherGroup.Egg.transform.position,OtherGroup,i);
             gainUnits[i].Disappear();
         }
-        
+        if(OtherGroup.groupType == Match3G_GroupInfo.GroupType.GroupB)
+        {
+            Match3G_GroupInfo.UI.HealthBar_Red.DamagerSettlement.Show(totalDamage);
+        }else
+        {
+            Match3G_GroupInfo.UI.HealthBar_Blue.DamagerSettlement.Show(totalDamage);
+        }
     }
     void SoldiersGain_Logic()
     {
@@ -508,8 +516,8 @@ public class Match3G_Group : MonoBehaviour
     public bool EvaluateDrag (Vector3 start, Vector3 end)
 	{
 		float2 a = ScreenToTileSpace(start), b = ScreenToTileSpace(end);
-        
-		var move = new Move(
+        if(a.x == -1 && a.y == -1)return false;
+		Move move = new(
 			(int2)floor(a), (b - a) switch
 			{
 				var d when d.x > dragThreshold => MoveDirection.Right,
@@ -519,11 +527,13 @@ public class Match3G_Group : MonoBehaviour
 				_ => MoveDirection.None
 			}
 		);
+        Manager.OutLine.Show(tiles[move.From].transform.position);
 		if (
 			move.IsValid &&
 			grid.AreValidCoordinates(move.From) && grid.AreValidCoordinates(move.To)
 			)
 		{
+            Manager.OutLine.Hide();
 			DoMove(move);
 			return false;
 		}
@@ -532,6 +542,13 @@ public class Match3G_Group : MonoBehaviour
     float2 ScreenToTileSpace (Vector3 screenPosition)
 	{
 		Ray ray = Camera.main.ScreenPointToRay(screenPosition);
+        RaycastHit hit;
+        Match3G_Base unit;
+
+        if(!Physics.Raycast(ray, out hit))return float2(-1,-1);
+        hit.collider.TryGetComponent(out unit);
+        if(!unit)return float2(-1,-1);
+
 		Vector3 p = ray.origin - ray.direction * (ray.origin.z / ray.direction.z);
 		return float2(p.x - OffSet.x + 0.5f, p.y - OffSet.y + 0.5f);
 	}
@@ -544,8 +561,14 @@ public class Match3G_Group : MonoBehaviour
 		{
 			tiles[move.From] = b;
 			tiles[move.To] = a;
-            Numerical.CurrentStep += 1;
-		}
+            Numerical.CurrentStep -= 1;
+            string Jelly_crash = "Match3G_wav/Jelly_crash";
+            Sound.Instance.PlaySoundTemp(Jelly_crash);
+		}else
+        {
+            string Wrong_match = "Match3G_wav/Wrong_match";
+            Sound.Instance.PlaySoundTemp(Wrong_match);
+        }
 	}
     public bool TryMove (Move move)
 	{
@@ -754,7 +777,6 @@ public class Match3G_Group : MonoBehaviour
             if(grid[c] == TileState.Freezed)continue;
             realMatches.Add(match);
         }
-        
 		for (int m = 0; m < realMatches.Count; m++)
 		{
 			Match match = realMatches[m];
@@ -787,6 +809,7 @@ public class Match3G_Group : MonoBehaviour
 			tiles[c] = null;
             // Debug.Log("消除"+c);
 		}
+       
     } 
     void AttackOtherGroup_Logic(int2 c,TileState t,bool isHorizontal,bool isHero = false)
     {

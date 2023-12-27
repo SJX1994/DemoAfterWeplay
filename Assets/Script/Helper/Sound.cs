@@ -6,6 +6,7 @@ using UnityEngine;
 public class Sound : MonoBehaviour
 {
     static Sound soundSys;
+    static AudioSource musicSource;
     static AudioSource soundSource;
     void Awake()
     {
@@ -30,6 +31,21 @@ public class Sound : MonoBehaviour
         soundSource.transform.SetParent(soundSys.transform);
         soundSource.playOnAwake = false;
         soundSource.loop = false;
+        musicSource = new GameObject("musicSource").AddComponent<AudioSource>();
+        musicSource.transform.SetParent(soundSys.transform);
+        musicSource.playOnAwake = false;
+        musicSource.loop = false;
+    }
+    public void PlayMusicSimple(string path,float volume = 1)
+    {
+        AudioClip clip = Resources.Load<AudioClip>(path);
+        if (clip == null)return;
+        // if(musicSource.isPlaying)return;
+        musicSource.clip = clip;
+        musicSource.volume *= volume;
+        musicSource.Play();
+        musicSource.loop = true;
+
     }
     public void PlaySoundTemp(string name,float volume = 1,float delay = 0)
     {

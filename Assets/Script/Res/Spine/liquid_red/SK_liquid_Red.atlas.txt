@@ -1,0 +1,6 @@
+SK_liquid_Red.png
+size:138,108
+filter:Linear,Linear
+pma:true
+liquid_Red_image
+bounds:2,2,134,104

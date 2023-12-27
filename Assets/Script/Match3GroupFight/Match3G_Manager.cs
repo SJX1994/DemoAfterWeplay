@@ -53,6 +53,15 @@ public class Match3G_Manager : MonoBehaviour
             return numerical; 
         } 
     }
+    Match3G_Manager_StepLight stepLight;
+    public Match3G_Manager_StepLight StepLight 
+    { 
+        get 
+        { 
+            if (stepLight == null) 
+                stepLight = FindObjectOfType<Match3G_Manager_StepLight>();
+            return stepLight; } 
+    }
     public Match3G_GroupInfo.GroupType WhichGroupTurn 
     { 
         get 
@@ -95,6 +104,27 @@ public class Match3G_Manager : MonoBehaviour
             return mask;
         } 
     }
+    private Match3G_Manager_EnergyLiquid energyLiquid;
+    public Match3G_Manager_EnergyLiquid EnergyLiquid 
+    { 
+        get 
+        { 
+            if (energyLiquid == null) 
+                energyLiquid = FindObjectOfType<Match3G_Manager_EnergyLiquid>();
+            return energyLiquid; 
+        } 
+    }
+    private Match3G_Unit_OutLine outLine;
+    public Match3G_Unit_OutLine OutLine 
+    { 
+        get 
+        { 
+            if (outLine == null) 
+                outLine = FindObjectOfType<Match3G_Unit_OutLine>(true);
+            return outLine; 
+        } 
+    }
+    
     public bool isDragging;
     public Vector3 dragStart;
     public bool HasMatches => GroupA.HasMatches || GroupB.HasMatches;

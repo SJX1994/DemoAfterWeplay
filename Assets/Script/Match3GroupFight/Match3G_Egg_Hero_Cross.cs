@@ -2,6 +2,7 @@ using UnityEngine;
 using Match3G_PlayerData;
 using System.Linq;
 using DG.Tweening;
+using Spine.Unity;
 public class Match3G_Egg_Hero_Cross : Match3G_Egg_Hero
 {
     public int verticallyCount = 0;
@@ -25,6 +26,54 @@ public class Match3G_Egg_Hero_Cross : Match3G_Egg_Hero
             this.Info_upCount = upCount;
             this.Info_downCount = downCount;
         }
+    }
+    SkeletonAnimation skeletonAnimation_hero;
+    SkeletonAnimation SkeletonAnimation_hero
+    {
+        get
+        {
+            if (skeletonAnimation_hero == null)
+                skeletonAnimation_hero = GetComponentInChildren<SkeletonAnimation>();
+            return skeletonAnimation_hero;
+        }
+    }
+    public Vector3 HeroOriginalPos;
+    private Renderer spineRenderer;
+    private Renderer SpineRenderer
+    {
+        get
+        {
+            if (spineRenderer == null)
+                spineRenderer = SkeletonAnimation_hero.transform.GetComponent<Renderer>();
+            return spineRenderer;
+        }
+    }
+    private MaterialPropertyBlock spinePropertyBlock_OutLineAlpha;
+    public override void Introduce()
+    {
+        base.Introduce();
+        HeroOriginalPos = SkeletonAnimation_hero.transform.localPosition;
+        SkeletonAnimation_hero.AnimationState.SetAnimation(0, "attack", true);
+        SkeletonAnimation_hero.transform.localPosition = new Vector3(HeroOriginalPos.x- 0.6f, HeroOriginalPos.y , HeroOriginalPos.z);
+        UpdateMatAlpha(0.6f);
+    }
+    protected override void DoScaleDown()
+    {
+        base.DoScaleDown();
+        SkeletonAnimation_hero.AnimationState.SetAnimation(0, "idle", true);
+        SkeletonAnimation_hero.transform.localPosition = HeroOriginalPos;
+        UpdateMatAlpha(0.0f);
+    }
+    public override void OnUse(Vector3 mousePosition)
+    {
+        base.OnUse(mousePosition);
+    }
+    public override void Match3G_Egg_Hero_Using_Enter()
+    {
+        base.Match3G_Egg_Hero_Using_Enter();
+        SkeletonAnimation_hero.AnimationState.SetAnimation(0, "move", true);
+        SkeletonAnimation_hero.transform.localPosition = HeroOriginalPos;
+        UpdateMatAlpha(1.0f);
     }
     protected override void DoDifferentUsed(Vector2 posID, Match3G_GroupInfo.GroupType groupType)
     {
@@ -77,5 +126,16 @@ public class Match3G_Egg_Hero_Cross : Match3G_Egg_Hero
         Destroy(obj_Left,duration+0.1f);
         Destroy(obj_Right,duration+0.1f);
 
+    }
+    public void UpdateMatAlpha(float SetFloat)
+    {
+        if (spinePropertyBlock_OutLineAlpha == null)
+        {
+            spinePropertyBlock_OutLineAlpha = new MaterialPropertyBlock();
+        }
+        if(SetFloat == spinePropertyBlock_OutLineAlpha.GetFloat("_SelectOutlineAlpha"))return;
+        SpineRenderer.GetPropertyBlock(spinePropertyBlock_OutLineAlpha);
+        spinePropertyBlock_OutLineAlpha.SetFloat("_SelectOutlineAlpha", SetFloat);
+        SpineRenderer.SetPropertyBlock(spinePropertyBlock_OutLineAlpha);
     }
 }

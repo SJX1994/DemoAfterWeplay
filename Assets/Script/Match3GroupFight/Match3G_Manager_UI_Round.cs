@@ -67,10 +67,10 @@ public class Match3G_Manager_UI_Round : MonoBehaviour
     public float RoundSwitch(Match3G_Group wchichGroup)
     {
         gameObject.SetActive(true);
-        float timeToWait = 1;
+        float timeToWait = 3;
         Image_round.transform.localPosition = new Vector3(-250f, image_round_pos.y, image_round_pos.z);
-        Image_round.transform.localScale = new Vector3(0.0f, image_round_scale.y, image_round_scale.z);
-        Image_roundText.transform.localScale = new Vector3(0.0f, image_roundText_scale.y, image_roundText_scale.z);
+        // Image_round.transform.localScale = new Vector3(0.0f, image_round_scale.y, image_round_scale.z);
+        // Image_roundText.transform.localScale = new Vector3(0.0f, image_roundText_scale.y, image_roundText_scale.z);
         if(Match3G_GroupInfo.round>9)Match3G_GroupInfo.round = 9;
         Image_roundText.sprite = roundTexts[Match3G_GroupInfo.round];
         Image_background.color = new Color(1f, 1f, 1f, 0f);

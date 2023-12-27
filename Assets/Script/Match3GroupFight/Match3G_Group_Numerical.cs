@@ -31,17 +31,18 @@ public class Match3G_Group_Numerical : MonoBehaviour
             if(currentStep >= maxStep)
             {
                 currentStep = maxStep;
+            }
+            if(currentStep <= 0)
+            {
+                currentStep = 0;
                 ExhaustedStep = true;
             }else
             {
                 ExhaustedStep = false;
             }
-            if(currentStep <= 0)
-            {
-                currentStep = 0;
-                
-            }
             TextMeshStep.text = "Step:" + currentStep.ToString() + "/" + maxStep.ToString();
+            Match3G_GroupInfo.Game.StepLight.SetLight(Group,currentStep);
+
         }
     }
     TextMeshPro textMeshStep;
@@ -68,8 +69,13 @@ public class Match3G_Group_Numerical : MonoBehaviour
             currentAC = value;
             if(currentAC < 0)currentAC = 0;
             TextMeshAC.text = "AC:" + currentAC.ToString();
-            float bar_AC = Match3G_Tool.Remap(currentAC,0,maxHP,0,222);
-            // Match3G_GroupInfo.UI.HealthBar.;
+            float bar_AC = Match3G_Tool.Remap(currentHP + currentAC*3f,0,maxHP,230,0);
+            if(Group.groupType == Match3G_GroupInfo.GroupType.GroupA){
+                Match3G_GroupInfo.UI.HealthBar_Blue.SetArmorBar(bar_AC);
+            }else
+            {
+                Match3G_GroupInfo.UI.HealthBar_Red.SetArmorBar(bar_AC);
+            }
         } 
     }
 
@@ -101,8 +107,8 @@ public class Match3G_Group_Numerical : MonoBehaviour
             currentHP += damage;
             if(currentHP<0)currentHP = 0;
             if(currentHP>maxHP)currentHP = maxHP;
-            // TextMeshHP.text = "HP:" + currentHP.ToString() + "/" + maxHP.ToString();
-            float bar_HP = Match3G_Tool.Remap(currentHP,0,maxHP,222,0);
+            TextMeshHP.text = "HP:" + currentHP.ToString() + "/" + maxHP.ToString();
+            float bar_HP = Match3G_Tool.Remap(currentHP,0,maxHP,230,0);
             if(Group.groupType == Match3G_GroupInfo.GroupType.GroupA){
                 Match3G_GroupInfo.UI.HealthBar_Blue.SetHelthBar(bar_HP);
             }else
@@ -138,6 +144,7 @@ public class Match3G_Group_Numerical : MonoBehaviour
             if(currentMP>maxMP)currentMP = maxMP;
             TextMeshMP.text = currentMP.ToString() + "/" + maxMP.ToString() + ":MP";
             Group.Egg.CompletedLight.intensity = (float)currentMP / (float)maxMP * 5f;
+            Match3G_GroupInfo.Game.EnergyLiquid.SetLiquidValue(Group);
         } 
     }
     TextMeshPro textMeshMP;
@@ -193,14 +200,17 @@ public class Match3G_Group_Numerical : MonoBehaviour
         } 
     }
     public int enegyMultiplier = 1;
+    
     void Awake()
     {
         CurrentHP = maxHP;
         CurrentMP = 0;
     }
+    
     public void ClearEnegys()
     {
         enegys.Clear();
+        
     }
     public void AddEnegy(Vector3 positionFrom,Vector3 positionTo, int valueIn,Match3G_Egg target)
     {

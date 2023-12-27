@@ -71,6 +71,7 @@ public class Match3G_Unit : MonoBehaviour
 # region 数据关系
     public void Spawn ()
 	{
+        disappearDuration = 0.6f;
         // template_Numerical = Instantiate(template_Numerical);
 		disappearProgress = -1f;
         falling.progress = -1f;
@@ -89,14 +90,17 @@ public class Match3G_Unit : MonoBehaviour
     {
         Color trunColor = new Color(1f,1f,1f,1f);
         Color otherTurnColor = new Color(1f,1f,1f,0.5f);
+        
         if(!SpriteRenderer_unit)return;
         if(Match3G_GroupInfo.Game.WhichGroupTurn == groupType)
         {
             if(SpriteRenderer_unit.color == trunColor)return;
+            transform.position = new Vector3(transform.position.x,transform.position.y,0.0f);
             SpriteRenderer_unit.color = trunColor;
         }else
         {
             if(SpriteRenderer_unit.color == otherTurnColor)return;
+            transform.position = new Vector3(transform.position.x,transform.position.y,0.7f);
             SpriteRenderer_unit.color = otherTurnColor;
         }
     }
@@ -175,20 +179,23 @@ public class Match3G_Unit : MonoBehaviour
 	}
     Tween tween_PostProcess;
     Tween backTween_PostProcess;
-    public void MoveToHealthBar(Vector3 pos,Match3G_Group to,int index = 0)
+    public int MoveToHealthBar(Vector3 pos,Match3G_Group to,int index = 0)
     {
-        Tween t = transform.DOMove(pos, disappearDuration-Random.Range(0.01f,disappearDuration-0.01f)).SetEase(Ease.InSine);
+        int attackValue = 1 + template_Numerical.attackPower;
+        Tween t = transform.DOMove(pos, disappearDuration-Random.Range(0.01f,disappearDuration-0.2f)).SetEase(Ease.InSine);
         t.onComplete += () => {
             to.Shake.ShakeObjectScale();
             string Particle_Hit = "Effect_Explosion";
             ParticleLoader.Instance.PlayParticleTemp(Particle_Hit,pos, new Vector3(-90,0,0));
-            to.Numerical.CurrentHP = -1 -template_Numerical.attackPower;
+            to.Numerical.CurrentHP = -attackValue;
             Shake shakeCam = Camera.main.GetComponent<Shake>();
-            shakeCam.Shake_strength += 0.01f * (float)index;
+            shakeCam.Shake_strength += 0.005f * (float)index;
             shakeCam.ShakeObjectPosition();
+            string Explosion = "Match3G_wav/Explosion";
+                Sound.Instance.PlaySoundTemp(Explosion);
         };
         PostProcessVolume.profile.TryGetSettings(out bloom);
-        if (!bloom)return;
+        if (!bloom)return 0;
         tween_PostProcess?.Kill();
         backTween_PostProcess?.Kill();
         float initialIntensity = 0f;
@@ -209,7 +216,7 @@ public class Match3G_Unit : MonoBehaviour
             backTween_PostProcess.SetEase(Ease.InSine); 
         };
         
-        
+        return attackValue;
         
     }
     public float Disappear ()
@@ -238,6 +245,8 @@ public class Match3G_Unit : MonoBehaviour
     }
     public void KnockedAway()
     {
+        string Jelly_destroy_01or02 = "Match3G_wav/Jelly_destroy_0"+Random.Range(1,3).ToString();
+        Sound.Instance.PlaySoundTemp(Jelly_destroy_01or02,1,Random.Range(0.1f,0.5f));
         Rigidbody.mass = 0.5f;
         Rigidbody.AddForce(new Vector3( Random.Range(0f, 1f)*10f, Random.Range(0f, 1f)*10f,Random.Range(-0.5f, -1f)*50f));
         Destroy(gameObject,3f);
@@ -254,6 +263,9 @@ public class Match3G_Unit : MonoBehaviour
 				falling.progress = -1f;
 				position.y = falling.toY;
 				enabled = disappearProgress >= 0f;
+
+                string drop3or4 = "Match3G_wav/drop"+Random.Range(3,5).ToString();
+                Sound.Instance.PlaySoundTemp(drop3or4);
 			}
 			else
 			{

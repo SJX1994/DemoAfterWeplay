@@ -33,7 +33,7 @@ public class Match3G_Egg_Hero : MonoBehaviour
     public LayerMask targetMask_base;
     bool inPlace = false;
     Tween TextTween;
-    public void Introduce()
+    public virtual void Introduce()
     {
         ParticleSystem_selected.Stop();
         originalPos = transform.position;
@@ -41,8 +41,9 @@ public class Match3G_Egg_Hero : MonoBehaviour
         OnUsing = false;
         DoScaleUp();
     }
-    public  void Match3G_Egg_Hero_Using_Enter()
+    public virtual void Match3G_Egg_Hero_Using_Enter()
     {
+        
         Debug.Log("Match3G_Egg_Hero_Using_Enter!");
     }
     public  void Match3G_Egg_Hero_Update()
@@ -62,6 +63,8 @@ public class Match3G_Egg_Hero : MonoBehaviour
     }
     void DoScaleUp()
     {
+        string Level_complete_0 = "Match3G_wav/Level_complete_0";
+        Sound.Instance.PlaySoundTemp(Level_complete_0);
         inPlace = false;
         float age = 1f;
         TextMesh.color = new Color(1,1,1,0);
@@ -69,14 +72,15 @@ public class Match3G_Egg_Hero : MonoBehaviour
         Tween t = transform.DOScale(1.5f,age).SetEase(Ease.OutBounce);
         t.onComplete += () => 
         {
-           TextTween = TextMesh.DOFade(1f,age);
+            TextTween = TextMesh.DOFade(1f,age);
+            
         };
         egg.CompletedLight.intensity = 10f;
         egg.CompletedLight.DOIntensity(0f,age*3);
         Match3G_GroupInfo.ShowMask = true;
         
     }
-    public void OnUse(Vector3 mousePosition)
+    public virtual void OnUse(Vector3 mousePosition)
     {
         if(!inPlace)return;
         if(Match3G_GroupInfo.groupTurn != egg.groupType)
@@ -117,11 +121,13 @@ public class Match3G_Egg_Hero : MonoBehaviour
             transform.DOScale(0.1f,0.25f).SetEase(Ease.InBounce).onComplete += () => 
             {
                 Destroy(gameObject);
+                string Burning_wick = "Match3G_wav/Burning_wick";
+                Sound.Instance.PlaySoundTemp(Burning_wick);
             };
         }
         Match3G_GroupInfo.CurrentGroup.Numerical.enegyMultiplier = 1;
     }
-    void DoScaleDown()
+    protected virtual void DoScaleDown()
     {
         if(inPlace){return;}
         inPlace = true;

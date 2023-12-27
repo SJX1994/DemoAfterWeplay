@@ -1,0 +1,6 @@
+liquid_blue_image.png
+size:138,104
+filter:Linear,Linear
+pma:true
+liquid_Blue_image
+bounds:2,2,134,100

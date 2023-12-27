@@ -5,6 +5,16 @@ using UnityEngine.UI;
 using Match3G_PlayerData;
 public class Match3G_Manager_UI_HealthBar : MonoBehaviour
 {
+    Match3G_Manager_UI_DamagerSettlement damagerSettlement;
+    public Match3G_Manager_UI_DamagerSettlement DamagerSettlement 
+    { 
+        get 
+        { 
+            if (damagerSettlement == null) 
+                damagerSettlement = GetComponentInChildren<Match3G_Manager_UI_DamagerSettlement>(true);
+            return damagerSettlement; 
+        } 
+    }
     public Match3G_GroupInfo.GroupType groupeBelong;
     RectMask2D mask_helthBar;
     RectMask2D Mask_helthBar 
@@ -29,5 +39,9 @@ public class Match3G_Manager_UI_HealthBar : MonoBehaviour
     public void SetHelthBar(float value)
     {
         Mask_helthBar.padding = new Vector4(0, 0, value, 0);
+    }
+    public void SetArmorBar(float value)
+    {
+        Mask_armorBar.padding = new Vector4(0, 0, value, 0);
     }
 }

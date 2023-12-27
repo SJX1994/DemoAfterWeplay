@@ -21,6 +21,8 @@ namespace Match3G_PlayerData
     }
     public class Match3G_GroupInfo
     {
+        public static Color energyColorRed = new Color32(255, 200, 34,255);
+        public static Color energyColorBlue = new Color32(25, 255, 128,255); 
         public static int round = 0;
         public const int TileStateStart = (int)TileState.A;
         private static Match3G_Manager game;
@@ -451,7 +453,7 @@ namespace Match3G_PlayerData
                     return;
                 }
             }
-
+            maxDepthOffset = 0.1f;
             float t = progress / duration;
             float z = Mathf.Sin(Mathf.PI * t) * maxDepthOffset;
             Vector3 p = Vector3.Lerp(positionA, positionB, t);

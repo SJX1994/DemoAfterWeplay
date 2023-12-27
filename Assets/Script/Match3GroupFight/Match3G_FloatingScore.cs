@@ -35,7 +35,9 @@ public class Match3G_FloatingScore : MonoBehaviour
     public void Show (Vector3 positionFrom,Vector3 positionTo, int value,Match3G_Group_Numerical who,Color color)
 	{
         TrailRenderer.startColor = Color.white;
-        TrailRenderer.endColor = color;
+        Color energyColor = Match3G_GroupInfo.groupTurn == Match3G_GroupInfo.GroupType.GroupA ? Match3G_GroupInfo.energyColorBlue : Match3G_GroupInfo.energyColorRed;
+        TrailRenderer.endColor = energyColor;
+        TrailRenderer.startWidth = 0.35f;
         positionFrom.z -= 3f;
         positionTo.z -= 3f;
         transform.position = positionFrom;
@@ -45,10 +47,12 @@ public class Match3G_FloatingScore : MonoBehaviour
         tween2 = null;
         tween3 = null;
         tween1.OnComplete(() => {
-            tween2 = transform.DOMove(positionTo,age/4).SetEase(Ease.InSine);
+            tween2 = transform.DOMove(positionTo,age/4+Random.Range(0.1f,0.3f)).SetEase(Ease.InSine);
             tween3 = transform.DOScale(0.1f,age/4).SetEase(Ease.InSine);
             who.CurrentMP += value;
             who.Group.Shake.ShakeObjectScale();
+            string Color_bomb = "Match3G_wav/Color_bomb";
+            Sound.Instance.PlaySoundTemp(Color_bomb);
         });
         Destroy(gameObject,age);
 	}
@@ -59,30 +63,35 @@ public class Match3G_FloatingScore : MonoBehaviour
         transform.position = positionFrom;
         TextMesh.text = "能量+" + value.ToString();
         TextMesh.color = Color.blue + Color.white*0.3f;
-        tween1 = transform.DOScale(1.5f,age/2).SetEase(Ease.OutBounce);
+        tween1 = transform.DOScale(1.5f,age/2+Random.Range(0.1f,0.3f)).SetEase(Ease.OutBounce);
         tween2 = null;
         tween3 = null;
         tween1.OnComplete(() => {
             tween2 = transform.DOMove(positionTo,age*2).SetEase(Ease.InSine);
             tween3 = transform.DOScale(0.1f,age/4).SetEase(Ease.InSine);
+            string Combo = "Match3G_wav/Combo";
+            Sound.Instance.PlaySoundTemp(Combo);
         });
         Destroy(gameObject,age*4);
 	}
     public Match3G_FloatingScore Show (Vector3 positionFrom,Vector3 positionTo, string describe,int value,Color color)
 	{
         TrailRenderer.startColor = Color.white;
-        TrailRenderer.endColor = color;
+        Color energyColor = Match3G_GroupInfo.groupTurn == Match3G_GroupInfo.GroupType.GroupA ? Match3G_GroupInfo.energyColorBlue : Match3G_GroupInfo.energyColorRed;
+        TrailRenderer.endColor = energyColor;
         positionFrom.z -= 3f;
         positionTo.z -= 3f;
         transform.position = positionFrom;
         TextMesh.text = describe + value.ToString();
         TextMesh.color = color;
-        tween1 = transform.DOScale(1.5f,age/2).SetEase(Ease.OutBounce);
+        tween1 = transform.DOScale(1.5f,age/2+Random.Range(0.1f,0.3f)).SetEase(Ease.OutBounce);
         tween2 = transform.DOMoveY(positionFrom.y + 1f,age/2).SetEase(Ease.OutSine);
         tween3 = null;
         tween1.OnComplete(() => {
             tween2 = transform.DOMove(positionTo,age/4).SetEase(Ease.InSine);
             tween3 = transform.DOScale(0f,age/4).SetEase(Ease.InSine);
+            string Combo = "Match3G_wav/Combo";
+            Sound.Instance.PlaySoundTemp(Combo);
             OnMoveComplete?.Invoke();
         });
         Destroy(gameObject,age*4);

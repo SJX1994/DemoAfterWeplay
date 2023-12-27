@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MonsterLove.StateMachine;
 using Match3G_PlayerData;
+using UnityEngine.SceneManagement;
 public class Match3G_Manager_Flow : MonoBehaviour
 {
     Match3G_Manager game;
@@ -17,8 +18,9 @@ public class Match3G_Manager_Flow : MonoBehaviour
     private StateMachine<States, Driver> fsm;
     public StateMachine<States, Driver> FSM => fsm;
     public float roundTime = 9f;
+    public float roundTime_Temp = 0f;
     private float playStartTime;
-    public float settlementTime_Total = 1.5f;
+    public float settlementTime_Total = 1.8f;
     private float settlementTime;
     public float soldiersGain_Total = 1.5f;
     private float soldiersGainTime;
@@ -37,6 +39,8 @@ public class Match3G_Manager_Flow : MonoBehaviour
     bool keepTime = false;
     private void Awake()
 	{
+        string game_map_music = "Match3G_wav/game_map_music";
+        Sound.Instance.PlayMusicSimple(game_map_music);
 		fsm = new StateMachine<States, Driver>(this);
 		fsm.ChangeState(States.Start);
 	}
@@ -72,23 +76,30 @@ public class Match3G_Manager_Flow : MonoBehaviour
 	{
         GUIStyle myButtonStyle = new GUIStyle(GUI.skin.button);
         myButtonStyle.fontSize = 50;
+        started = false;
 		if (GUI.Button(new Rect(Screen.width/2 - 250, Screen.height/2, 500, 150), "2-Start",myButtonStyle))
 		{
 			fsm.ChangeState(States.AddEnergy);
+            string Button = "Match3G_wav/Button";
+            Sound.Instance.PlaySoundTemp(Button);
 		}
         if (GUI.Button(new Rect(Screen.width/2 - 250, Screen.height/2 - 250, 500, 150), "1-Start",myButtonStyle))
 		{
             automaticPlay = true;
 			fsm.ChangeState(States.AddEnergy);
+            string Button = "Match3G_wav/Button";
+            Sound.Instance.PlaySoundTemp(Button);
 		}
 	}
     void AddEnergy_Enter()
 	{
-        if(!keepTime)playStartTime = Time.time;
 		playStartTime = Time.time;
+        roundTime_Temp = roundTime;
         if(!started)
         {
+            started = true;
             Game.automaticPlay = automaticPlay;
+            Match3G_GroupInfo.ShowMask = false;
             Game.Match.Match_Start();
             Game.GroupA.Numerical.CurrentMP = 0;
             Game.GroupA.Numerical.CurrentAC = 0;
@@ -96,9 +107,13 @@ public class Match3G_Manager_Flow : MonoBehaviour
             Game.GroupB.Numerical.CurrentMP = 0;
             Game.GroupB.Numerical.CurrentAC = 0;
             Game.GroupB.Numerical.CurrentHP = Game.GroupB.Numerical.maxHP;
+            
+            Game.GroupA.Numerical.CurrentStep = 0;
+            Game.GroupB.Numerical.CurrentStep = Game.GroupB.Numerical.maxStep;
             Match3G_GroupInfo.round = 0;
             Game.UI.Round.RoundSwitch(Match3G_GroupInfo.CurrentGroup);
-            started = true;
+            string game_music = "Match3G_wav/game_music";
+            Sound.Instance.PlayMusicSimple(game_music);
         }
 	}
     void AddEnergy_OnGUI()
@@ -108,8 +123,8 @@ public class Match3G_Manager_Flow : MonoBehaviour
 		// int timeRemaining = (int)(roundTime - (Time.time - playStartTime));
         // if(timeRemaining < 0)timeRemaining = 0;
 		// GUI.Label(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 70), $"Time Remaining: {timeRemaining:n3}",myTextStyle);
-        float timeRemainingF = roundTime - (Time.time - playStartTime);
-        Game.UI.Timer.UpdateTimer(timeRemainingF,roundTime);
+        float timeRemainingF = roundTime_Temp - (Time.time - playStartTime);
+        Game.UI.Timer.UpdateTimer(timeRemainingF,roundTime_Temp);
 	}
     void AddEnergy_Update()
 	{
@@ -140,7 +155,7 @@ public class Match3G_Manager_Flow : MonoBehaviour
         }
         Game.Match.Match_Update(); 
        
-        if (Time.time - playStartTime < roundTime || Game.IsBusy)return;
+        if (Time.time - playStartTime < roundTime_Temp || Game.IsBusy)return;
         // fsm.ChangeState(States.SoldiersGain);
         fsm.ChangeState(States.Settlement);
 		
@@ -163,6 +178,8 @@ public class Match3G_Manager_Flow : MonoBehaviour
     }
     void HeroOnStage_Enter()
     {
+        string Lollipop = "Match3G_wav/Lollipop";
+        Sound.Instance.PlaySoundTemp(Lollipop);
         Game.GroupB.Egg.PairedHero.Match3G_Egg_Hero_Using_Enter();
     }
     void HeroOnStage_Update()
@@ -171,7 +188,6 @@ public class Match3G_Manager_Flow : MonoBehaviour
         Game.GroupB.Egg.PairedHero.Match3G_Egg_Hero_Using_Update();
         Game.Match.Match_Update();
         if(haveHero)return;
-        keepTime = true;
         fsm.ChangeState(States.AddEnergy);
     }
     void HeroIntroduce_Enter()
@@ -190,7 +206,6 @@ public class Match3G_Manager_Flow : MonoBehaviour
     void Settlement_Enter()
     {
         settlementTime = Time.time;
-        // Game.AttackSettlement(); // 按照消除攻击
         Game.AttackSettlementByOccupied(); // 按照占领攻击
     }
     void Settlement_Update()
@@ -201,18 +216,27 @@ public class Match3G_Manager_Flow : MonoBehaviour
         }
         else
         {
+            
             if (Time.time - settlementTime < settlementTime_Total)return;
+            // Game.AttackSettlement(); // 按照消除攻击
             fsm.ChangeState(States.TurnSwitch);
         }
     }
+    void Settlement_Exit()
+    {
+        
+    }
+    
     void TurnSwitch_Enter()
     {
+        Game.OutLine.Hide();
         keepTime = false;
         Game.SwitchTurn();
         roundWaitTime = Time.time;
         Match3G_GroupInfo.round++;
-        Match3G_GroupInfo.CurrentGroup.Numerical.CurrentStep = 0;
-        float roundWaitTime_Total = Game.UI.Round.RoundSwitch(Match3G_GroupInfo.CurrentGroup);
+        Match3G_GroupInfo.CurrentGroup.Numerical.CurrentStep = Match3G_GroupInfo.CurrentGroup.Numerical.maxStep;
+        roundWaitTime_Total = Game.UI.Round.RoundSwitch(Match3G_GroupInfo.CurrentGroup);
+        Game.UI.Timer.playerWarning = false;
     }
     void TurnSwitch_Update()
     {
@@ -228,23 +252,41 @@ public class Match3G_Manager_Flow : MonoBehaviour
     }
     void Win_Enter()
     {
-
+        string Game_over_2 = "Match3G_wav/Game_over_2";
+        Sound.Instance.PlaySoundTemp(Game_over_2);
+        string game_music_2 = "Match3G_wav/game_music_2";
+        Sound.Instance.PlayMusicSimple(game_music_2);
     }
     void Win_OnGUI()
     {
         GUIStyle myTextStyle = new GUIStyle(GUI.skin.button);
         myTextStyle.fontSize = 290;
-        GUI.Label(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 370), $"Win",myTextStyle);
+        if(GUI.Button(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 300), $"Win",myTextStyle))
+        {
+            string Button = "Match3G_wav/Button";
+            Sound.Instance.PlaySoundTemp(Button);
+            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+            SceneManager.LoadScene(currentSceneIndex);
+        }
     }
     void Lose_Enter()
     {
-
+        string Game_over_1 = "Match3G_wav/Game_over_1";
+        Sound.Instance.PlaySoundTemp(Game_over_1);
+        string game_music_2 = "Match3G_wav/game_music_2";
+        Sound.Instance.PlayMusicSimple(game_music_2);
     }
     void Lose_OnGUI()
     {
         GUIStyle myTextStyle = new GUIStyle(GUI.skin.button);
         myTextStyle.fontSize = 290;
-        GUI.Label(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 370), $"Lose",myTextStyle);
+        if(GUI.Button(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 300), $"Lose",myTextStyle))
+        {
+            string Button = "Match3G_wav/Button";
+            Sound.Instance.PlaySoundTemp(Button);
+            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+            SceneManager.LoadScene(currentSceneIndex);
+        }
     }
 
 #endregion 有限状态机

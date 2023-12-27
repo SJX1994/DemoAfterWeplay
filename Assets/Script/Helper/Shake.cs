@@ -26,11 +26,11 @@ public class Shake : MonoBehaviour
             Shake_strength = 0.6f;
         });
     }
-    public void ShakeObjectScale()
+    public void ShakeObjectScale(float strength = 0.25f)
     {
         // 设置振动的参数
         float duration = 0.2f;     // 振动的持续时间
-        float strength = 0.25f;   // 振动的强度
+        // strength = 0.25f;   // 振动的强度
         int vibrato = 20;        // 振动的频率
         // 开始振动
         // originalPosition = transform.position;
