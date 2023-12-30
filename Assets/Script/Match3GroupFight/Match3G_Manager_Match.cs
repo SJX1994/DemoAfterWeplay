@@ -4,7 +4,7 @@ using UnityEngine;
 using Match3G_PlayerData;
 using UnityEngine.Events;
 using Unity.VisualScripting;
-
+using DG.Tweening;
 public class Match3G_Manager_Match : MonoBehaviour
 {
     public UnityAction OnTurnSwitch;
@@ -58,7 +58,27 @@ public class Match3G_Manager_Match : MonoBehaviour
         { 
             if(Game.Flow.FSM.State != Match3G_Manager_Flow.States.AddEnergy)return;
             continuousEliminationCount = value;
-            if(continuousEliminationCount >= 4)
+            if(continuousEliminationCount >= 9)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(7);
+            }
+            else if(continuousEliminationCount >= 8)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(6);
+            }
+            else if(continuousEliminationCount >= 7)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(5);
+            }
+            else if(continuousEliminationCount >= 6)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(4);
+            }
+            else if(continuousEliminationCount >= 5)
+            {
+                Match3G_GroupInfo.UI.Praise.SetPraise(3);
+            }
+            else if(continuousEliminationCount >= 4)
             {
                 Match3G_GroupInfo.UI.Praise.SetPraise(2);
             }
@@ -68,11 +88,88 @@ public class Match3G_Manager_Match : MonoBehaviour
             }
             else if(continuousEliminationCount >= 2)
             {
+                
                 Match3G_GroupInfo.UI.Praise.SetPraise(0);
             }
+            Match3G_GroupInfo.match3G_SavingData_temp.mergeTimes = continuousEliminationCount;
         } 
     }
-    
+    SpriteRenderer blueSet;
+    SpriteRenderer BlueSet 
+    { 
+        get 
+        { 
+            if (blueSet == null) 
+                blueSet = transform.Find("Blue_Set").GetComponent<SpriteRenderer>();
+            return blueSet; 
+        } 
+    }
+    SpriteRenderer redSet;
+    SpriteRenderer RedSet 
+    { 
+        get 
+        { 
+            if (redSet == null) 
+                redSet = transform.Find("Red_Set").GetComponent<SpriteRenderer>();
+            return redSet; 
+        } 
+    }
+    float RedToY = -7.25f;
+    float RedFromY = -8.8f;
+    float BlueToY = 7.3f;
+    float BlueFromY = 8.8f;
+    Tween blueTween;
+    Tween redTween;
+    public void HidePage()
+    {
+        Match3G_GroupInfo.Game.StepLight.gameObject.SetActive(false);
+        Match3G_GroupInfo.Game.EnergyLiquid.gameObject.SetActive(false);
+        BlueSet.gameObject.SetActive(false);
+        RedSet.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.HealthBar_Blue.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.HealthBar_Red.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.Developing.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.Timer.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.MatchingTools.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.Setting_OutMatch.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.Setting_InMatch.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.MatchFinish.Hide();
+        GroupA.gameObject.SetActive(false);
+        GroupB.gameObject.SetActive(false);
+        GroupA.Egg.gameObject.SetActive(false);
+        GroupB.Egg.gameObject.SetActive(false);
+        
+    }
+    public void ShowPage()
+    {
+        
+        BlueSet.gameObject.SetActive(true);
+        RedSet.gameObject.SetActive(true);
+        Match3G_GroupInfo.UI.Setting_OutMatch.gameObject.SetActive(false);
+        Match3G_GroupInfo.UI.Setting_InMatch.gameObject.SetActive(false);
+        BlueSet.transform.position = new Vector3(BlueSet.transform.position.x, BlueFromY, BlueSet.transform.position.z);
+        RedSet.transform.position = new Vector3(RedSet.transform.position.x, RedFromY, RedSet.transform.position.z);
+        blueTween = BlueSet.transform.DOMoveY(BlueToY, 0.5f).SetEase(Ease.OutSine);
+        redTween = RedSet.transform.DOMoveY(RedToY, 0.5f).SetEase(Ease.OutSine);
+        redTween.onComplete = () =>
+        {
+            
+            GroupA.gameObject.SetActive(true);
+            GroupB.gameObject.SetActive(true);
+            GroupA.Egg.gameObject.SetActive(true);
+            GroupB.Egg.gameObject.SetActive(true);
+            Match3G_GroupInfo.Game.StepLight.gameObject.SetActive(true);
+            Match3G_GroupInfo.Game.EnergyLiquid.gameObject.SetActive(true);
+            Match3G_GroupInfo.Game.EnergyLiquid.SetLiquidValue(GroupB);
+            Match3G_GroupInfo.Game.EnergyLiquid.SetLiquidValue(GroupA);
+            Match3G_GroupInfo.UI.Developing.gameObject.SetActive(false);
+            Match3G_GroupInfo.UI.HealthBar_Blue.gameObject.SetActive(true);
+            Match3G_GroupInfo.UI.HealthBar_Red.gameObject.SetActive(true);
+            Match3G_GroupInfo.UI.Timer.gameObject.SetActive(true);
+            Match3G_GroupInfo.UI.MatchingTools.gameObject.SetActive(true);
+            Match3G_GroupInfo.UI.MatchFinish.Hide();
+        };
+    }
     public void Match_Start()
     {
         busyDuration = 0f;
@@ -89,6 +186,13 @@ public class Match3G_Manager_Match : MonoBehaviour
         if(!IsBusy)
         {
             HandleInput();
+            if(Match3G_GroupInfo.CurrentGroup.groupType == Match3G_GroupInfo.GroupType.GroupA)
+            {
+                Match3G_GroupInfo.match3G_SavingData_round_blue.mergeTimes = Mathf.Max(ContinuousEliminationCount, Match3G_GroupInfo.match3G_SavingData_round_blue.mergeTimes);
+            }else
+            {
+                Match3G_GroupInfo.match3G_SavingData_round_red.mergeTimes = Mathf.Max(ContinuousEliminationCount, Match3G_GroupInfo.match3G_SavingData_round_red.mergeTimes);
+            }
             ContinuousEliminationCount = 0;
         }
 		DoWork();
@@ -148,12 +252,14 @@ public class Match3G_Manager_Match : MonoBehaviour
 		else if (GroupA.NeedsFilling || GroupB.NeedsFilling)
 		{
 			DropTiles();
-		}
-		// else if (!IsPlaying)
-		// {
-		// 	gameOverText.gameObject.SetActive(true);
-		// }
+
+		}else if(Match3G_GroupInfo.CurrentGroup.NoMoreMove)
+        {
+            Match3G_GroupInfo.CurrentGroup.CheckNoMoreMove();
+        }
+        
     }
+    
     void DropTiles()
     {
         if(WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA)
@@ -172,6 +278,7 @@ public class Match3G_Manager_Match : MonoBehaviour
             if(!Game.automaticPlay)
             {
                 ContinuousEliminationCount++;
+                
             }
             GroupA.ProcessMatches();
         }else if(WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupB)

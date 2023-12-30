@@ -67,6 +67,8 @@ public class Match3G_Manager_UI_Round : MonoBehaviour
     public float RoundSwitch(Match3G_Group wchichGroup)
     {
         gameObject.SetActive(true);
+        string Stripes_bonus = "Match3G_wav/Stripes_bonus";
+        Sound.Instance.PlaySoundTemp(Stripes_bonus);
         float timeToWait = 3;
         Image_round.transform.localPosition = new Vector3(-250f, image_round_pos.y, image_round_pos.z);
         // Image_round.transform.localScale = new Vector3(0.0f, image_round_scale.y, image_round_scale.z);
@@ -118,6 +120,8 @@ public class Match3G_Manager_UI_Round : MonoBehaviour
         Tween TweenFade= Image_background.DOFade(0f, 0.15f).SetEase(Ease.OutExpo);
         TweenFade.OnComplete(()=>
         {
+            string Swishe_banner = "Match3G_wav/Swishe_banner";
+            Sound.Instance.PlaySoundTemp(Swishe_banner);
             gameObject.SetActive(false);
         });
         

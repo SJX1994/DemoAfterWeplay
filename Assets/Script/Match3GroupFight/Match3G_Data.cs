@@ -5,8 +5,10 @@ using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using System;
 using System.Linq;
+using UnityEngine.SceneManagement;
 namespace Match3G_PlayerData
 {
+    
     public enum TileState
     {
         None, Freezed, A, B, C, D, E, F, G
@@ -18,9 +20,64 @@ namespace Match3G_PlayerData
             float t = Mathf.InverseLerp(oldLow, oldHigh, input);
             return Mathf.Lerp(newLow, newHigh, t);
         }
+        public static void BackToMenu()
+        {
+            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+            SceneManager.LoadScene(currentSceneIndex);  
+        }
     }
+    public class Match3G_SystemInfo
+    {
+        public static float musicVolume = 1f;
+        public static float soundVolume = 1f; 
+    }
+
+    public class Match3G_SavingData
+    {
+        public string macName;
+        public const string macNameKey = "macName";
+        public int mergeTimes;
+        public const string mergeTimesKey = "mergeTimes";
+        public int totalKillNumbers;
+        public const string totalKillNumbersKey = "totalKillNumbers";
+        public int useHeroTimes;
+        public const string useHeroTimesKey = "useHeroTimes";
+        public int highScore;
+        public const string highScoreKey = "highScore";
+        public float totalPlayTime;
+        public const string totalPlayTimeKey = "totalPlayTime";
+
+        public Match3G_SavingData(string macName, int mergeTimes, int totalKillNumbers, int useHeroTimes, int highScore, float totalPlayTime)
+        {
+            this.macName = macName;
+            this.mergeTimes = mergeTimes;
+            this.totalKillNumbers = totalKillNumbers;
+            this.useHeroTimes = useHeroTimes;
+            this.highScore = highScore;
+            this.totalPlayTime = totalPlayTime;
+        }
+       
+        public override string ToString()
+        {
+            int hours = Mathf.FloorToInt(totalPlayTime / 3600);
+            int minutes = Mathf.FloorToInt(totalPlayTime % 3600 / 60);
+            int seconds = Mathf.FloorToInt(totalPlayTime % 60);
+            return $"机器名称：{macName},最高连消：{mergeTimes},消灭敌人总数：{totalKillNumbers},使用英雄次数：{useHeroTimes},单局最高分：{highScore},总游戏时间：{hours}小时{minutes}分{seconds}秒";
+        }
+    }
+
     public class Match3G_GroupInfo
     {
+        public static Match3G_SavingData match3G_SavingData_temp;
+        public static Match3G_SavingData match3G_SavingData_round_red;
+        public static Match3G_SavingData match3G_SavingData_round_blue;
+        public enum PlayMode
+        {
+            Hard,
+            Easy,
+            TwoPlayer
+        }
+        public static PlayMode playMode = PlayMode.Hard;
         public static Color energyColorRed = new Color32(255, 200, 34,255);
         public static Color energyColorBlue = new Color32(25, 255, 128,255); 
         public static int round = 0;

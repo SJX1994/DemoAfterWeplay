@@ -4,6 +4,7 @@ using UnityEngine;
 using Match3G_PlayerData;
 using DG.Tweening;
 using TMPro;
+using Unity.VisualScripting;
 public class Match3G_Group_Numerical : MonoBehaviour
 {
     [SerializeField]
@@ -119,7 +120,7 @@ public class Match3G_Group_Numerical : MonoBehaviour
             
         } 
     }
-    
+    Match3G_GroupInfo.GroupType groupType => Group.groupType;
     [SerializeField]
     public int maxMP; // Magic Point
     int currentMP;
@@ -135,6 +136,15 @@ public class Match3G_Group_Numerical : MonoBehaviour
             {
                 currentMP = 0;
                 enegyMultiplier = 1;
+                if(groupType == Match3G_GroupInfo.GroupType.GroupB)
+                {
+                    Match3G_GroupInfo.match3G_SavingData_round_red.useHeroTimes++;
+                }
+                else
+                {
+                    // TODO Ai使用英雄
+                    Match3G_GroupInfo.match3G_SavingData_round_blue.useHeroTimes++;
+                }
             }
             else
             {
@@ -226,6 +236,15 @@ public class Match3G_Group_Numerical : MonoBehaviour
 			value = valueIn * enegyMultiplier++
 		};
 		enegys.Add(score);
+        Match3G_GroupInfo.match3G_SavingData_temp.highScore += score.value;
+        if(groupType == Match3G_GroupInfo.GroupType.GroupA)
+        {
+            Match3G_GroupInfo.match3G_SavingData_round_blue.highScore += score.value;
+        }
+        else
+        {
+            Match3G_GroupInfo.match3G_SavingData_round_red.highScore += score.value;
+        }
     }
     void AddEnegy_View(Match3G_Egg target)
     {

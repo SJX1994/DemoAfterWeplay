@@ -60,9 +60,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -171,6 +171,11 @@ MonoBehaviour:
   - {fileID: 21300000, guid: d3b94d85cea00f441965f75ac440cb30, type: 3}
   - {fileID: 21300000, guid: d98ffb825f77bd34da9bbf5c79464fc5, type: 3}
   - {fileID: 21300000, guid: 94a5c9413e747cc4aa0a38640d7ecaad, type: 3}
+  - {fileID: 21300000, guid: 4cabd2bc8ee0c5245a9b6491fc8dd5b1, type: 3}
+  - {fileID: 21300000, guid: f8a51f48b69e4a54a821e2a11411212c, type: 3}
+  - {fileID: 21300000, guid: 3b087deb617c71c42a143aa7327c9b08, type: 3}
+  - {fileID: 21300000, guid: 3e03e357c34cd7b4d9d8064e5caa3a63, type: 3}
+  - {fileID: 21300000, guid: ba8fd26bc98108f428a95327b0283d5f, type: 3}
 --- !u!1 &6348293146746715278
 GameObject:
   m_ObjectHideFlags: 0
@@ -231,9 +236,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []

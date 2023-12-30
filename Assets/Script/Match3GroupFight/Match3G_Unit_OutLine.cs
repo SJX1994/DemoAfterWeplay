@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Match3G_PlayerData;
 public class Match3G_Unit_OutLine : MonoBehaviour
 {
     public void Show(Vector3 pos)

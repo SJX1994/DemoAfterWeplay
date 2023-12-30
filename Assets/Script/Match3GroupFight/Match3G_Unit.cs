@@ -182,17 +182,25 @@ public class Match3G_Unit : MonoBehaviour
     public int MoveToHealthBar(Vector3 pos,Match3G_Group to,int index = 0)
     {
         int attackValue = 1 + template_Numerical.attackPower;
-        Tween t = transform.DOMove(pos, disappearDuration-Random.Range(0.01f,disappearDuration-0.2f)).SetEase(Ease.InSine);
+        int offset = to.groupType == Match3G_GroupInfo.GroupType.GroupA ? -3 : 3;
+        float RandomX = Random.Range(-0.12f,0.12f);
+        float RandomY = Random.Range(-0.12f,0.12f);
+        Tween t = transform.DOMove(new Vector3(pos.x+RandomX,pos.y+offset+RandomY,pos.z), disappearDuration/3*2-Random.Range(0.01f,disappearDuration/3*2-0.2f)).SetEase(Ease.InSine);
         t.onComplete += () => {
-            to.Shake.ShakeObjectScale();
-            string Particle_Hit = "Effect_Explosion";
-            ParticleLoader.Instance.PlayParticleTemp(Particle_Hit,pos, new Vector3(-90,0,0));
-            to.Numerical.CurrentHP = -attackValue;
-            Shake shakeCam = Camera.main.GetComponent<Shake>();
-            shakeCam.Shake_strength += 0.005f * (float)index;
-            shakeCam.ShakeObjectPosition();
-            string Explosion = "Match3G_wav/Explosion";
+            float queueDuration = disappearDuration/3 - index * 0.025f;
+            Tween t = transform.DOMove(pos, queueDuration).SetEase(Ease.InBounce);
+            t.onComplete += () => {
+                to.Shake.ShakeObjectScale();
+                string Particle_Hit = "Effect_Explosion";
+                ParticleLoader.Instance.PlayParticleTemp(Particle_Hit,pos, new Vector3(-90,0,0));
+                to.Numerical.CurrentHP = -attackValue;
+                Shake shakeCam = Camera.main.GetComponent<Shake>();
+                shakeCam.Shake_strength += 0.005f * (float)index;
+                shakeCam.ShakeObjectPosition();
+                string Explosion = "Match3G_wav/Explosion";
                 Sound.Instance.PlaySoundTemp(Explosion);
+            };
+            
         };
         PostProcessVolume.profile.TryGetSettings(out bloom);
         if (!bloom)return 0;
@@ -200,27 +208,28 @@ public class Match3G_Unit : MonoBehaviour
         backTween_PostProcess?.Kill();
         float initialIntensity = 0f;
         float targetIntensity = 6f + index * 0.5f;
-        float duration = 1f;
+        // float duration = 1f;
         bloom.intensity.value = initialIntensity;
         bloom.color.value = Match3G_GroupInfo.groupTurn == Match3G_GroupInfo.GroupType.GroupA? Color.blue + Color.white*0.6f: Color.red + Color.white*0.6f;
         tween_PostProcess = DOTween.To(() => bloom.intensity.value,
                                  value => bloom.intensity.value = value,
                                  targetIntensity,
-                                 duration/2);
+                                 disappearDuration/2);
         tween_PostProcess.SetEase(Ease.OutBounce);
         tween_PostProcess.onComplete += () => {
             backTween_PostProcess = DOTween.To(() => bloom.intensity.value,
                                  value => bloom.intensity.value = value,
                                  initialIntensity,
-                                 duration/2);
+                                 disappearDuration/2);
             backTween_PostProcess.SetEase(Ease.InSine); 
         };
         
         return attackValue;
         
     }
-    public float Disappear ()
+    public float Disappear (float disapperDurationIn = 0)
 	{
+        disappearDuration = disapperDurationIn == 0 ? disappearDuration : disapperDurationIn;
 		disappearProgress = 0f;
 		enabled = true;
 		return disappearDuration;

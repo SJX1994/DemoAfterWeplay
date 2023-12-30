@@ -29,6 +29,7 @@ public class Match3G_Manager_UI_DamagerSettlement : MonoBehaviour
     static float delayDuration = 2f;
     public void Show(int damage)
     {
+        if(damage <= 0)return;
         gameObject.SetActive(true);
         textTween?.Kill();
         bgTween?.Kill();

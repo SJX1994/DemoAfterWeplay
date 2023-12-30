@@ -16,7 +16,7 @@ public class Match3G_Group : MonoBehaviour
         get 
         { 
             if (egg == null) 
-                egg = FindObjectsOfType<Match3G_Egg>().Where(x => x.groupType == groupType).First();
+                egg = FindObjectsOfType<Match3G_Egg>(true).Where(x => x.groupType == groupType).First();
             return egg; } 
     }
     public int2 size;
@@ -127,11 +127,18 @@ public class Match3G_Group : MonoBehaviour
     public bool HasMatches => matches.Count > 0;
     List<Match> matches = new();
     public List<Match3G_Unit> gainUnits = new();
-    
+    public bool NoMoreMove => !Manager.IsBusy && !PossibleMove.IsValid;
+    public List<int2> noMoreMove_clearedTileCoordinates = new();
     
 #endregion 数据对象
 
 #region 数据关系
+    public void CheckNoMoreMove()
+    {
+        if(!NoMoreMove)return;
+        Debug.Log( groupType + "NoMoreMove!!");
+        Regenerate();
+    }
     public void DoAutomaticMove () => DoMove(PossibleMove);
     public void SoldiersGain()
     {
@@ -174,6 +181,22 @@ public class Match3G_Group : MonoBehaviour
     }
     public void CreatUnits()
     {
+        Vector3 pos = transform.position;
+        switch(Match3G_GroupInfo.playMode)
+        {
+            case Match3G_GroupInfo.PlayMode.TwoPlayer:
+                size = new int2(6,12);
+                break;
+            case Match3G_GroupInfo.PlayMode.Hard:
+                size = new int2(6,12);
+                break;
+            case Match3G_GroupInfo.PlayMode.Easy:
+                size = new int2(3,12);
+                transform.position = new Vector3(pos.x+1.6f,pos.y,pos.z);
+                Numerical.maxHP = Numerical.maxHP/2;
+                Numerical.maxMP = Numerical.maxMP/2;;
+                break;
+        }
         CreatUnits_Logic();
         CreatUnits_View();
     }
@@ -233,6 +256,41 @@ public class Match3G_Group : MonoBehaviour
     }
 #endregion 数据关系
 #region 数据操作
+    void Regenerate()
+    {
+        Regenerate_Logic();
+        Regenerate_View();
+        NeedsFilling = true;
+        string Alert = "Match3G_wav/Alert";
+        Sound.Instance.PlaySoundTemp(Alert);
+        Match3G_GroupInfo.Game.Flow.roundTime_Temp += 10;
+    }
+    void Regenerate_Logic()
+    {
+        noMoreMove_clearedTileCoordinates.Clear();
+        for (int x = 0; x < size.x; x++)
+        {
+            for (int y = 0; y < size.y; y++)
+            {
+                int2 c = int2(x,y);
+                // if(grid.AreValidCoordinates(c))continue;
+                if(grid[c] == TileState.Freezed)continue;
+                grid[c] = TileState.None;
+                noMoreMove_clearedTileCoordinates.Add(c);
+                
+            }
+        }
+    }
+    void Regenerate_View()
+    {
+        for(int i = 0; i < noMoreMove_clearedTileCoordinates.Count; i++)
+        {
+            int2 c = noMoreMove_clearedTileCoordinates[i];
+            Manager.busyDuration = Mathf.Max(tiles[c].Disappear(), Manager.busyDuration);
+			tiles[c] = null;
+        }
+    }
+    
     public bool isMaxStep()
     {
         return Numerical.ExhaustedStep;
@@ -292,8 +350,6 @@ public class Match3G_Group : MonoBehaviour
 		}
 		while (!PossibleMove.IsValid);
         ResetFreeze();
-       
-       
     }
     void CreatUnits_View()
     {   
@@ -367,16 +423,27 @@ public class Match3G_Group : MonoBehaviour
                 grid[x,y] = TileState.Freezed;
                 Match3G_Unit gainUnit = tiles[x,y];
                 gainUnits.Add(gainUnit);
+                if(groupType == Match3G_GroupInfo.GroupType.GroupB)
+                {
+                    Match3G_GroupInfo.match3G_SavingData_round_red.totalKillNumbers += 1;
+                }else
+                {
+                    Match3G_GroupInfo.match3G_SavingData_round_blue.totalKillNumbers += 1;
+                }
+                if(groupType != Match3G_GroupInfo.GroupType.GroupB)continue;
+                Match3G_GroupInfo.match3G_SavingData_temp.totalKillNumbers += 1;
             }
         }
+        Match3G_GroupInfo.Game.UI.SavedData.SaveData();
     }
     void OccupiedReduceHealth_View()
     {
         int totalDamage = 0;
         for(int i = 0; i < gainUnits.Count; i++)
         {
+            gainUnits[i].Disappear(2.5f);
             totalDamage += gainUnits[i].MoveToHealthBar(OtherGroup.Egg.transform.position,OtherGroup,i);
-            gainUnits[i].Disappear();
+            
         }
         if(OtherGroup.groupType == Match3G_GroupInfo.GroupType.GroupB)
         {
@@ -564,6 +631,7 @@ public class Match3G_Group : MonoBehaviour
             Numerical.CurrentStep -= 1;
             string Jelly_crash = "Match3G_wav/Jelly_crash";
             Sound.Instance.PlaySoundTemp(Jelly_crash);
+            Match3G_GroupInfo.Game.BootSystem.HideBoot();
 		}else
         {
             string Wrong_match = "Match3G_wav/Wrong_match";
@@ -828,6 +896,8 @@ public class Match3G_Group : MonoBehaviour
             }
             while(OtherGroup.tiles[c].groupType == groupType);
 
+           
+
         }else if(groupType == Match3G_GroupInfo.GroupType.GroupA)
         {
             c = new int2(c.x,6);
@@ -842,6 +912,7 @@ public class Match3G_Group : MonoBehaviour
         AttackOtherGroup_View(c,t);
         OtherGroup.grid[c] = TileState.None;
         OtherGroup.ClearedTileCoordinates.Add(c);
+        
     }
     void AttackOtherGroup_View(int2 c,TileState t)
     {

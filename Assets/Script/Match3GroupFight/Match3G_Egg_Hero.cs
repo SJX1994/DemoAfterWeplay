@@ -138,6 +138,7 @@ public class Match3G_Egg_Hero : MonoBehaviour
         transform.DOScale(0.5f,age).SetEase(Ease.InSine);
         egg.Hide();
         Match3G_GroupInfo.ShowMask = false;
+        Match3G_GroupInfo.match3G_SavingData_temp.useHeroTimes += 1;
     }
     protected virtual void DoDifferentUsed(Vector2 posID,Match3G_GroupInfo.GroupType groupType)
     {

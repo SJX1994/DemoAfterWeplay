@@ -33,6 +33,8 @@ Material:
     - _OutlineReferenceTexWidth: 1024
     - _OutlineSmoothness: 1
     - _OutlineWidth: 3
+    - _SelectOutlineAlpha: 0
+    - _SelectOutlineWidth: 0.005
     - _StencilComp: 8
     - _StencilRef: 1
     - _StraightAlphaInput: 0
@@ -40,4 +42,6 @@ Material:
     - _Use8Neighbourhood: 1
     m_Colors:
     - _OutlineColor: {r: 1, g: 1, b: 0, a: 1}
+    - _SelectOutlineColor: {r: 0, g: 0, b: 0, a: 0}
+    - _SelectOutlinePositon: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

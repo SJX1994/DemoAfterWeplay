@@ -19,7 +19,7 @@ public class Match3G_Manager : MonoBehaviour
         get 
         { 
             if (ui == null) 
-                ui = FindObjectOfType<Match3G_Manager_UI>();
+                ui = FindObjectOfType<Match3G_Manager_UI>(true);
             return ui; } 
     }
     Match3G_Manager_Match match;
@@ -28,7 +28,7 @@ public class Match3G_Manager : MonoBehaviour
         get 
         { 
             if (match == null) 
-                match = FindObjectOfType<Match3G_Manager_Match>();
+                match = FindObjectOfType<Match3G_Manager_Match>(true);
             return match; } 
     }
     Match3G_Manager_Flow flow;
@@ -37,7 +37,7 @@ public class Match3G_Manager : MonoBehaviour
         get 
         { 
             if (flow == null) 
-                flow = FindObjectOfType<Match3G_Manager_Flow>();
+                flow = FindObjectOfType<Match3G_Manager_Flow>(true);
             return flow; } 
     }
     Match3G_Group_Numerical numerical;
@@ -59,9 +59,19 @@ public class Match3G_Manager : MonoBehaviour
         get 
         { 
             if (stepLight == null) 
-                stepLight = FindObjectOfType<Match3G_Manager_StepLight>();
+                stepLight = FindObjectOfType<Match3G_Manager_StepLight>(true);
             return stepLight; } 
     }
+    Match3G_Manager_Welcome welcome;
+    public Match3G_Manager_Welcome Welcome 
+    { 
+        get 
+        { 
+            if (welcome == null) 
+                welcome = FindObjectOfType<Match3G_Manager_Welcome>(true);
+            return welcome; } 
+    }
+
     public Match3G_GroupInfo.GroupType WhichGroupTurn 
     { 
         get 
@@ -74,6 +84,15 @@ public class Match3G_Manager : MonoBehaviour
             Match3G_GroupInfo.groupTurn = value;
             Match.TakeTheTurn();
         }
+    }
+    Match3G_Manager_BootSystem bootSystem;
+    public Match3G_Manager_BootSystem BootSystem 
+    { 
+        get 
+        { 
+            if (bootSystem == null) 
+                bootSystem = FindObjectOfType<Match3G_Manager_BootSystem>(true);
+            return bootSystem; } 
     }
     Match3G_Group groupA, groupB;
     public Match3G_Group GroupA 
@@ -110,7 +129,7 @@ public class Match3G_Manager : MonoBehaviour
         get 
         { 
             if (energyLiquid == null) 
-                energyLiquid = FindObjectOfType<Match3G_Manager_EnergyLiquid>();
+                energyLiquid = FindObjectOfType<Match3G_Manager_EnergyLiquid>(true);
             return energyLiquid; 
         } 
     }

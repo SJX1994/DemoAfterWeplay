@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using MonsterLove.StateMachine;
 using Match3G_PlayerData;
-using UnityEngine.SceneManagement;
 public class Match3G_Manager_Flow : MonoBehaviour
 {
     Match3G_Manager game;
@@ -27,7 +26,7 @@ public class Match3G_Manager_Flow : MonoBehaviour
     private float roundWaitTime;
     private float roundWaitTime_Total = 1.5f;
     bool started = false;
-    bool automaticPlay = false;
+    public bool automaticPlay = false;
     public bool haveHero => Game.GroupB.Egg.PairedHero && !Game.GroupB.Egg.EggRenderer.enabled;
     bool heroUsing  
     {
@@ -36,7 +35,7 @@ public class Match3G_Manager_Flow : MonoBehaviour
             return Game.GroupB.Egg.PairedHero.OnUsing;
         }
     }
-    bool keepTime = false;
+    private float gameStartTime;
     private void Awake()
 	{
         string game_map_music = "Match3G_wav/game_map_music";
@@ -72,32 +71,57 @@ public class Match3G_Manager_Flow : MonoBehaviour
 		public StateEvent OnGUI;
 		public StateEvent<Item> OnItemSelected;
 	}
+    void Start_Enter()
+    {
+        Game.Welcome.ShowPage();
+        Game.Match.HidePage();
+        Game.UI.SavedData.gameObject.SetActive(true);
+        Match3G_GroupInfo.match3G_SavingData_temp = new("", 0, 0, 0, 0, 0f);
+        Match3G_GroupInfo.match3G_SavingData_round_red = new("", 0, 0, 0, 0, 0f);
+        Match3G_GroupInfo.match3G_SavingData_round_blue = new("", 0, 0, 0, 0, 0f);
+        gameStartTime = Time.time;
+        Time.timeScale = 1;
+
+    }
     void Start_OnGUI()
 	{
         GUIStyle myButtonStyle = new GUIStyle(GUI.skin.button);
         myButtonStyle.fontSize = 50;
         started = false;
-		if (GUI.Button(new Rect(Screen.width/2 - 250, Screen.height/2, 500, 150), "2-Start",myButtonStyle))
-		{
-			fsm.ChangeState(States.AddEnergy);
-            string Button = "Match3G_wav/Button";
-            Sound.Instance.PlaySoundTemp(Button);
-		}
-        if (GUI.Button(new Rect(Screen.width/2 - 250, Screen.height/2 - 250, 500, 150), "1-Start",myButtonStyle))
-		{
-            automaticPlay = true;
-			fsm.ChangeState(States.AddEnergy);
-            string Button = "Match3G_wav/Button";
-            Sound.Instance.PlaySoundTemp(Button);
-		}
+		// if (GUI.Button(new Rect(Screen.width/2 - 250, Screen.height/2, 500, 150), "双人同屏",myButtonStyle))
+		// {
+        //     Match3G_GroupInfo.playMode = Match3G_GroupInfo.PlayMode.TwoPlayer;
+		// 	fsm.ChangeState(States.AddEnergy);
+        //     string Button = "Match3G_wav/Button";
+        //     Sound.Instance.PlaySoundTemp(Button);
+		// }
+        // if (GUI.Button(new Rect(Screen.width/2 - 250, Screen.height/2 - 250, 500, 150), "单人闯关(困难)",myButtonStyle))
+		// {
+        //     automaticPlay = true;
+        //     Match3G_GroupInfo.playMode = Match3G_GroupInfo.PlayMode.Hard;
+		// 	fsm.ChangeState(States.AddEnergy);
+        //     string Button = "Match3G_wav/Button";
+        //     Sound.Instance.PlaySoundTemp(Button);
+		// }
+        // if (GUI.Button(new Rect(Screen.width/2 - 250, Screen.height/2 - 500, 500, 150), "单人闯关(简单)",myButtonStyle))
+		// {
+        //     automaticPlay = true;
+        //     Match3G_GroupInfo.playMode = Match3G_GroupInfo.PlayMode.Easy;
+		// 	fsm.ChangeState(States.AddEnergy);
+        //     string Button = "Match3G_wav/Button";
+        //     Sound.Instance.PlaySoundTemp(Button);
+		// }
 	}
     void AddEnergy_Enter()
 	{
 		playStartTime = Time.time;
         roundTime_Temp = roundTime;
+        Match3G_GroupInfo.Game.BootSystem.ResetBoot();
         if(!started)
         {
             started = true;
+            Game.Match.ShowPage();
+            Game.Welcome.HidePage();
             Game.automaticPlay = automaticPlay;
             Match3G_GroupInfo.ShowMask = false;
             Game.Match.Match_Start();
@@ -107,11 +131,11 @@ public class Match3G_Manager_Flow : MonoBehaviour
             Game.GroupB.Numerical.CurrentMP = 0;
             Game.GroupB.Numerical.CurrentAC = 0;
             Game.GroupB.Numerical.CurrentHP = Game.GroupB.Numerical.maxHP;
-            
             Game.GroupA.Numerical.CurrentStep = 0;
             Game.GroupB.Numerical.CurrentStep = Game.GroupB.Numerical.maxStep;
             Match3G_GroupInfo.round = 0;
             Game.UI.Round.RoundSwitch(Match3G_GroupInfo.CurrentGroup);
+            Game.UI.SavedData.gameObject.SetActive(false);
             string game_music = "Match3G_wav/game_music";
             Sound.Instance.PlayMusicSimple(game_music);
         }
@@ -125,14 +149,15 @@ public class Match3G_Manager_Flow : MonoBehaviour
 		// GUI.Label(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 70), $"Time Remaining: {timeRemaining:n3}",myTextStyle);
         float timeRemainingF = roundTime_Temp - (Time.time - playStartTime);
         Game.UI.Timer.UpdateTimer(timeRemainingF,roundTime_Temp);
+        
 	}
     void AddEnergy_Update()
 	{
-        if(automaticPlay && Game.GroupA.Numerical.CurrentHP <= 0 && !Game.IsBusy)
+        if(Game.GroupA.Numerical.CurrentHP <= 0 && !Game.IsBusy)
         {
             fsm.ChangeState(States.Win);
         }
-        if(automaticPlay && Game.GroupB.Numerical.CurrentHP <= 0 && !Game.IsBusy)
+        if(Game.GroupB.Numerical.CurrentHP <= 0 && !Game.IsBusy)
         {
             fsm.ChangeState(States.Lose);
         }
@@ -154,7 +179,16 @@ public class Match3G_Manager_Flow : MonoBehaviour
             fsm.ChangeState(States.Settlement);
         }
         Game.Match.Match_Update(); 
-       
+        Match3G_GroupInfo.Game.BootSystem.BootUpdate();
+        Match3G_GroupInfo.match3G_SavingData_temp.totalPlayTime = Time.time - gameStartTime;
+        if (Match3G_GroupInfo.CurrentGroup == Game.GroupA)
+        {
+            Match3G_GroupInfo.match3G_SavingData_round_blue.totalPlayTime += Time.deltaTime;
+        }
+        else
+        {
+            Match3G_GroupInfo.match3G_SavingData_round_red.totalPlayTime += Time.deltaTime;
+        }
         if (Time.time - playStartTime < roundTime_Temp || Game.IsBusy)return;
         // fsm.ChangeState(States.SoldiersGain);
         fsm.ChangeState(States.Settlement);
@@ -230,7 +264,7 @@ public class Match3G_Manager_Flow : MonoBehaviour
     void TurnSwitch_Enter()
     {
         Game.OutLine.Hide();
-        keepTime = false;
+        
         Game.SwitchTurn();
         roundWaitTime = Time.time;
         Match3G_GroupInfo.round++;
@@ -256,18 +290,19 @@ public class Match3G_Manager_Flow : MonoBehaviour
         Sound.Instance.PlaySoundTemp(Game_over_2);
         string game_music_2 = "Match3G_wav/game_music_2";
         Sound.Instance.PlayMusicSimple(game_music_2);
+        Match3G_GroupInfo.UI.MatchFinish.ShowUp(Match3G_GroupInfo.GroupType.GroupB);
     }
     void Win_OnGUI()
     {
-        GUIStyle myTextStyle = new GUIStyle(GUI.skin.button);
-        myTextStyle.fontSize = 290;
-        if(GUI.Button(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 300), $"Win",myTextStyle))
-        {
-            string Button = "Match3G_wav/Button";
-            Sound.Instance.PlaySoundTemp(Button);
-            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-            SceneManager.LoadScene(currentSceneIndex);
-        }
+        // string showText = automaticPlay?"胜利":"红方胜利";
+        // GUIStyle myTextStyle = new GUIStyle(GUI.skin.button);
+        // myTextStyle.fontSize = 210;
+        // if(GUI.Button(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 300), showText ,myTextStyle))
+        // {
+        //     string Button = "Match3G_wav/Button";
+        //     Sound.Instance.PlaySoundTemp(Button);
+        //     Match3G_Tool.BackToMenu();
+        // }
     }
     void Lose_Enter()
     {
@@ -275,18 +310,19 @@ public class Match3G_Manager_Flow : MonoBehaviour
         Sound.Instance.PlaySoundTemp(Game_over_1);
         string game_music_2 = "Match3G_wav/game_music_2";
         Sound.Instance.PlayMusicSimple(game_music_2);
+        Match3G_GroupInfo.UI.MatchFinish.ShowUp(Match3G_GroupInfo.GroupType.GroupA);
     }
     void Lose_OnGUI()
     {
-        GUIStyle myTextStyle = new GUIStyle(GUI.skin.button);
-        myTextStyle.fontSize = 290;
-        if(GUI.Button(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 300), $"Lose",myTextStyle))
-        {
-            string Button = "Match3G_wav/Button";
-            Sound.Instance.PlaySoundTemp(Button);
-            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-            SceneManager.LoadScene(currentSceneIndex);
-        }
+        // string showText = automaticPlay?"失败":"蓝方胜利";
+        // GUIStyle myTextStyle = new GUIStyle(GUI.skin.button);
+        // myTextStyle.fontSize = 210;
+        // if(GUI.Button(new Rect(Screen.width/2 - 1500/2, Screen.height/2 - 70, 1500, 300), showText,myTextStyle))
+        // {
+        //     string Button = "Match3G_wav/Button";
+        //     Sound.Instance.PlaySoundTemp(Button);
+        //     Match3G_Tool.BackToMenu();
+        // }
     }
 
 #endregion 有限状态机

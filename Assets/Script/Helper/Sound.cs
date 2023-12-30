@@ -2,11 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Match3G_PlayerData;
 
 public class Sound : MonoBehaviour
 {
     static Sound soundSys;
-    static AudioSource musicSource;
+    public static AudioSource musicSource;
     static AudioSource soundSource;
     void Awake()
     {
@@ -43,9 +44,9 @@ public class Sound : MonoBehaviour
         // if(musicSource.isPlaying)return;
         musicSource.clip = clip;
         musicSource.volume *= volume;
+        musicSource.volume *= Match3G_SystemInfo.musicVolume;
         musicSource.Play();
         musicSource.loop = true;
-
     }
     public void PlaySoundTemp(string name,float volume = 1,float delay = 0)
     {
@@ -57,6 +58,7 @@ public class Sound : MonoBehaviour
         soundSourceTemp.loop = false;
         soundSourceTemp.clip = clip;
         soundSourceTemp.volume *= volume;
+        soundSourceTemp.volume *= Match3G_SystemInfo.soundVolume;
         if(delay == 0)
         {
             if(clip.length > 3)

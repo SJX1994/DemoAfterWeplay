@@ -33,12 +33,15 @@ public class Match3G_Manager_EnergyLiquid : MonoBehaviour
             energyLiquid_Blue.value = MP_proportion;
             float positionValue = Match3G_Tool.Remap(MP_proportion,0,1,energyLiquid_Blue.positionFrom.y,energyLiquid_Blue.positionTo.y);
             energyLiquid_Blue.skeletonAnimation.transform.parent.position = new Vector3(energyLiquid_Blue.skeletonAnimation.transform.position.x,positionValue,energyLiquid_Blue.skeletonAnimation.transform.position.z);
+            energyLiquid_Blue.skeletonAnimation.transform.localScale = Vector3.one;
+            energyLiquid_Blue.skeletonAnimation.transform.GetComponent<Shake>().ShakeObjectScale(0.6f);
         }else if(whichGroup.groupType == Match3G_GroupInfo.GroupType.GroupB)
         {
             float MP_proportion = Match3G_Tool.Remap(whichGroup.Numerical.CurrentMP,0f,whichGroup.Numerical.maxMP,0f,1f);
             energyLiquid_Red.value = MP_proportion;
             float positionValue = Match3G_Tool.Remap(MP_proportion,0f,1f,energyLiquid_Red.positionFrom.y,energyLiquid_Red.positionTo.y);
             energyLiquid_Red.skeletonAnimation.transform.parent.position = new Vector3(energyLiquid_Red.skeletonAnimation.transform.position.x,positionValue,energyLiquid_Red.skeletonAnimation.transform.position.z);
+            energyLiquid_Red.skeletonAnimation.transform.localScale = Vector3.one;
             energyLiquid_Red.skeletonAnimation.transform.GetComponent<Shake>().ShakeObjectScale(0.6f);
         }
     }
