@@ -22,12 +22,18 @@ public class Match3G_Manager_Welcome : MonoBehaviour
         BackGround_WelcomPage.SetActive(true);
         Match3G_GroupInfo.UI.Welcome.ShowPage_View();
         Match3G_GroupInfo.UI.Welcome_SelectMode.Hide();
+        Match3G_GroupInfo.UI.Welcom_Rules.Hide();
     }
     public void HidePage()
     {
         BackGround_WelcomPage.SetActive(false);
         Match3G_GroupInfo.UI.Welcome.HidePage_View();
         Match3G_GroupInfo.UI.Welcome_SelectMode.Hide();
+        Match3G_GroupInfo.UI.Welcom_Rules.Hide();
+    }
+    public void HideOther()
+    {
+        
     }
 
 }

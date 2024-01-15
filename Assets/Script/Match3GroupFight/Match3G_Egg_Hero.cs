@@ -4,6 +4,7 @@ using UnityEngine;
 using DG.Tweening;
 using Match3G_PlayerData;
 using TMPro;
+using Unity.Mathematics;
 public class Match3G_Egg_Hero : MonoBehaviour
 {
     public Match3G_Egg egg;
@@ -32,11 +33,19 @@ public class Match3G_Egg_Hero : MonoBehaviour
     public LayerMask targetMask_hero;
     public LayerMask targetMask_base;
     bool inPlace = false;
+    bool scaledDown = false;
+    public bool ScaledDown
+    {
+        get
+        {
+            return scaledDown;
+        }
+    }   
     Tween TextTween;
     public virtual void Introduce()
     {
         ParticleSystem_selected.Stop();
-        originalPos = transform.position;
+        originalPos = egg.transform.position;
         originalPos.z -= 1.5f;
         OnUsing = false;
         DoScaleUp();
@@ -46,15 +55,16 @@ public class Match3G_Egg_Hero : MonoBehaviour
         
         Debug.Log("Match3G_Egg_Hero_Using_Enter!");
     }
-    public  void Match3G_Egg_Hero_Update()
+    public void Match3G_Egg_Hero_Update()
     {
-        if(Input.GetMouseButtonDown(0))
+        if(Input.GetMouseButtonDown(0) && inPlace)
         {
+            TextMesh.color =  new Color(1,1,1,0);
             OnUse(Input.mousePosition);
             DoScaleDown();
         }    
     }
-    public  void Match3G_Egg_Hero_Using_Update()
+    public void Match3G_Egg_Hero_Using_Update()
     {
         if(Input.GetMouseButtonDown(0))
         {
@@ -66,6 +76,7 @@ public class Match3G_Egg_Hero : MonoBehaviour
         string Level_complete_0 = "Match3G_wav/Level_complete_0";
         Sound.Instance.PlaySoundTemp(Level_complete_0);
         inPlace = false;
+        scaledDown = false;
         float age = 1f;
         TextMesh.color = new Color(1,1,1,0);
         transform.DOMove(new Vector3(0,0,-1.5f),age).SetEase(Ease.OutBounce);
@@ -73,7 +84,7 @@ public class Match3G_Egg_Hero : MonoBehaviour
         t.onComplete += () => 
         {
             TextTween = TextMesh.DOFade(1f,age);
-            
+            inPlace = true;
         };
         egg.CompletedLight.intensity = 10f;
         egg.CompletedLight.DOIntensity(0f,age*3);
@@ -82,7 +93,7 @@ public class Match3G_Egg_Hero : MonoBehaviour
     }
     public virtual void OnUse(Vector3 mousePosition)
     {
-        if(!inPlace)return;
+        if(!scaledDown)return;
         if(Match3G_GroupInfo.groupTurn != egg.groupType)
         {
             if(transform.TryGetComponent(out Shake shake))
@@ -98,7 +109,7 @@ public class Match3G_Egg_Hero : MonoBehaviour
         Match3G_Egg_Hero hero;
         hit.collider.transform.TryGetComponent(out hero);
         if(!hero)return;
-        if(egg.groupType != Match3G_GroupInfo.GroupType.GroupB)return;
+        // if(egg.groupType != Match3G_GroupInfo.GroupType.GroupB)return;
         ParticleSystem_selected.Play();
         OnUsing = true;
     }
@@ -113,8 +124,10 @@ public class Match3G_Egg_Hero : MonoBehaviour
         foreach (RaycastHit hit in hits)
         {
             hit.collider.transform.TryGetComponent(out base_3g);
-            if(!base_3g)return;
-            if(base_3g.groupType != Match3G_GroupInfo.GroupType.GroupB)return;
+            if(!base_3g)continue;
+            if(base_3g.groupType != Match3G_GroupInfo.GroupType.GroupB && Match3G_GroupInfo.Game.automaticPlay)continue;
+            if(base_3g.groupType != Match3G_GroupInfo.groupTurn)continue;
+            if(base_3g.FindGrid(new int2(base_3g.posID)) == TileState.Freezed)continue;
             DoDifferentUsed(base_3g.posID,egg.groupType);
             egg.Show();
             OnUsing = false;
@@ -129,13 +142,14 @@ public class Match3G_Egg_Hero : MonoBehaviour
     }
     protected virtual void DoScaleDown()
     {
-        if(inPlace){return;}
-        inPlace = true;
+        if(!inPlace)return;
         TextTween?.Kill();
         float age = 0.5f;
-        TextMesh.color =  new Color(1,1,1,0);
         transform.DOMove(originalPos,age).SetEase(Ease.InSine);
-        transform.DOScale(0.5f,age).SetEase(Ease.InSine);
+        transform.DOScale(0.5f,age).SetEase(Ease.InSine).onComplete += () => 
+        {
+            scaledDown = true;
+        };
         egg.Hide();
         Match3G_GroupInfo.ShowMask = false;
         Match3G_GroupInfo.match3G_SavingData_temp.useHeroTimes += 1;

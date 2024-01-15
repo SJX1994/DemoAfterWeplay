@@ -216,7 +216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48651d55ed5d03d42a0a063af0462e4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  template_Numerical: {fileID: 11400000, guid: 67b68900efad17c48a58f756fc448906, type: 2}
+  template_Infomation: {fileID: 11400000, guid: 67b68900efad17c48a58f756fc448906, type: 2}
   groupType: 1
   disappearDuration: 0.5
   tileState: 6

@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using Random = UnityEngine.Random;
 using System.Linq;
 using static Unity.Mathematics.math;
+using UnityEngine.Networking.Match;
 
 public class Match3G_Group : MonoBehaviour
 {  
@@ -310,6 +311,8 @@ public class Match3G_Group : MonoBehaviour
                     c = new int2(c.x,c.y+1);
                     if(!grid.AreValidCoordinates(c))return;
                     if(!tiles[c])continue;
+                    Match3G_Base theBase = bases.Where(x => x.posID == new Vector2(c.x,c.y)).FirstOrDefault(); 
+                    theBase.MeshRendererSet(true);
                 }
                 while(grid[c] != TileState.Freezed);
 
@@ -321,6 +324,8 @@ public class Match3G_Group : MonoBehaviour
                     c = new int2(c.x,c.y-1);
                     if(!grid.AreValidCoordinates(c))return;
                     if(!tiles[c])continue;
+                    Match3G_Base theBase = bases.Where(x => x.posID == new Vector2(c.x,c.y)).FirstOrDefault(); 
+                    theBase.MeshRendererSet(true);
                 }
                 while(grid[c] != TileState.Freezed);
             }
@@ -328,7 +333,8 @@ public class Match3G_Group : MonoBehaviour
 
             grid[c] = TileState.None;
             ClearedTileCoordinates.Add(c);
-            bases.Where(x => x.posID == new Vector2(c.x,c.y)).FirstOrDefault().MeshRendererSet(true);
+            
+            // theBase.SetCollider(true);
         }
     }
     void ClearGainUnits()
@@ -594,7 +600,11 @@ public class Match3G_Group : MonoBehaviour
 				_ => MoveDirection.None
 			}
 		);
-        Manager.OutLine.Show(tiles[move.From].transform.position);
+        if(grid[move.From] != TileState.Freezed && grid[move.From] != TileState.None)
+        {
+            Manager.OutLine.Description = tiles[move.From].template_Infomation.unitDescribe_detailed;
+            Manager.OutLine.Show(tiles[move.From].transform.position);
+        }
 		if (
 			move.IsValid &&
 			grid.AreValidCoordinates(move.From) && grid.AreValidCoordinates(move.To)
@@ -928,6 +938,7 @@ public class Match3G_Group : MonoBehaviour
         OtherGroup.tiles[c].Gain(this,1);
         OtherGroup.tiles[c].HideAfterOccupied();
         //otherBase.TempBase = basePrefab;
+
     }
     Match3G_Egg_Hero_SameColor.SameColorAttackInfo Hero_SameColorAttack_Logic(Match3G_Egg_Hero_SameColor.SameColorAttackInfo info)
     {
@@ -996,7 +1007,7 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x+i, (int)posID.y);
             if(grid.AreValidCoordinates(c))
             {
-                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                if(grid[c] == TileState.Freezed /*|| !OtherGroup.tiles[c]*/)continue;
                 AttackOtherGroup(c,grid[c],true,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
@@ -1005,7 +1016,7 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x-i, (int)posID.y);
             if(grid.AreValidCoordinates(c))
             {
-                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                if(grid[c] == TileState.Freezed /*|| !OtherGroup.tiles[c]*/)continue;
                 AttackOtherGroup(c,grid[c],true,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
@@ -1017,7 +1028,7 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x, (int)posID.y+i);
             if(grid.AreValidCoordinates(c))
             {
-                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                if(grid[c] == TileState.Freezed /*|| !OtherGroup.tiles[c]*/)continue;
                 AttackOtherGroup(c,grid[c],false,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);
@@ -1026,7 +1037,7 @@ public class Match3G_Group : MonoBehaviour
             c = new int2((int)posID.x, (int)posID.y-i);
             if(grid.AreValidCoordinates(c))
             {
-                if(grid[c] == TileState.Freezed || !OtherGroup.tiles[c])continue;
+                if(grid[c] == TileState.Freezed /*|| !OtherGroup.tiles[c]*/)continue;
                 AttackOtherGroup(c,grid[c],false,isHero);
                 grid[c] = TileState.None;
                 Hero_clearedTileCoordinates.Add(c);

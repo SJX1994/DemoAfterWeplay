@@ -88,10 +88,12 @@ public class Match3G_Manager_UI_Setting_OutMatch : MonoBehaviour
         if(Toggle_doubleSpeed.isOn)
         {
             Time.timeScale = 2;
+            Match3G_GroupInfo.globalTimeScale = 2;
         }
         else
         {
             Time.timeScale = 1;
+            Match3G_GroupInfo.globalTimeScale = 1;
         }
     }
     public void SetMusicVolume()

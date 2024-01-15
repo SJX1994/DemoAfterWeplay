@@ -129,7 +129,7 @@ public class Match3G_Manager_UI_MatchFinish : MonoBehaviour
         }
     }
     float maskEffectScaleValue = 2018f;
-    string starEffectName = "";
+    // string starEffectName = "";
     // void Start()
     // {
     //     ShowUp(Match3G_GroupInfo.GroupType.GroupB);

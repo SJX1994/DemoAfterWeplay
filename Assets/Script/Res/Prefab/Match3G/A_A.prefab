@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48651d55ed5d03d42a0a063af0462e4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  template_Numerical: {fileID: 11400000, guid: cc596a5a439b7074d97f51ae28a4ee63, type: 2}
+  template_Infomation: {fileID: 11400000, guid: cc596a5a439b7074d97f51ae28a4ee63, type: 2}
   groupType: 0
   disappearDuration: 0.5
   tileState: 2

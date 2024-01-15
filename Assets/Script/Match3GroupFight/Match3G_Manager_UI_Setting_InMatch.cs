@@ -32,7 +32,7 @@ public class Match3G_Manager_UI_Setting_InMatch : MonoBehaviour
         }
     }
     float scaleValue = 0.94f;
-    int TimeScale = 1;
+    float TempTimeScale = 1;
     public void ShowUp()
     {
         string Button = "Match3G_wav/Button";
@@ -41,13 +41,15 @@ public class Match3G_Manager_UI_Setting_InMatch : MonoBehaviour
         Image_background.transform.localScale = Vector3.zero;
         Image_background.transform.DOScale(scaleValue, 0.25f).SetEase(Ease.OutBounce).OnComplete(() =>
         {
+            Match3G_GroupInfo.globalTimeScale = 0;
             Time.timeScale = 0;
         });
         
     }
     public void Hide()
     {
-        Time.timeScale = TimeScale;
+        Match3G_GroupInfo.globalTimeScale = TempTimeScale;
+        Time.timeScale = TempTimeScale;
         string Swishe_banner = "Match3G_wav/Swishe_banner";
         Sound.Instance.PlaySoundTemp(Swishe_banner);
         gameObject.SetActive(false);
@@ -56,15 +58,17 @@ public class Match3G_Manager_UI_Setting_InMatch : MonoBehaviour
     {
         if (Toggle_doubleSpeed.isOn)
         {
-            TimeScale = 2;
+            TempTimeScale = 2;
         }
         else
         {
-            TimeScale = 1;
+            TempTimeScale = 1;
         }
     }
     public void BackToMenu()
     {
         Match3G_Tool.BackToMenu();
+        Match3G_GroupInfo.globalTimeScale = 1;
+        Time.timeScale = 1;
     }
 }

@@ -195,7 +195,12 @@ public class Match3G_Manager_Match : MonoBehaviour
             }
             ContinuousEliminationCount = 0;
         }
-		DoWork();
+        else
+        {
+            Match3G_GroupInfo.Game.OutLine.HideDescription();
+        }
+		
+        DoWork();
         
     }
     void HandleInput ()
@@ -222,6 +227,7 @@ public class Match3G_Manager_Match : MonoBehaviour
 		else
 		{
 			isDragging = false;
+            Match3G_GroupInfo.Game.OutLine.HideDescription();
 		}
     }
     public bool EvaluateDrag (Vector3 start, Vector3 end)
@@ -237,6 +243,7 @@ public class Match3G_Manager_Match : MonoBehaviour
 	}
     public void DoWork () 
     {
+        
         if (busyDuration > 0f)
 		{
 			GroupA.tileSwapper.Update();

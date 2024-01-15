@@ -8,7 +8,7 @@ using UnityEngine.Rendering.PostProcessing;
 public class Match3G_Unit : MonoBehaviour
 {
 # region 数据对象
-    public Match3G_Template_Unit_Numerical template_Numerical;
+    public Match3G_Template_Unit_Infomation template_Infomation;
     public Match3G_GroupInfo.GroupType groupType;
     [SerializeField, Range(0f, 5f)]
 	float disappearDuration = 0.25f;
@@ -124,25 +124,26 @@ public class Match3G_Unit : MonoBehaviour
     }
     void Gain_View()
     {
+        if(!template_Infomation)return;
         Gain_Logic();
         Match3G_Group group = groupType == Match3G_GroupInfo.GroupType.GroupA ? Match3G_GroupInfo.Game.GroupA : Match3G_GroupInfo.Game.GroupB;
-        Match3G_FloatingScore scoreEffect = FloatingScorePrefab.Show(gainScore.positionFrom,gainScore.positionTo,template_Numerical.unitDescribe,gainScore.value,gainScore.color);
+        Match3G_FloatingScore scoreEffect = FloatingScorePrefab.Show(gainScore.positionFrom,gainScore.positionTo,template_Infomation.unitDescribe,gainScore.value,gainScore.color);
         scoreEffect.OnMoveComplete += () => {
-            group.Numerical.CurrentAC += template_Numerical.armorPower;
-            group.Numerical.CurrentHP = template_Numerical.healthPower;
-            group.Numerical.CurrentMP += template_Numerical.magicPower;
-            switch (template_Numerical.unitType)
+            group.Numerical.CurrentAC += template_Infomation.armorPower;
+            group.Numerical.CurrentHP = template_Infomation.healthPower;
+            group.Numerical.CurrentMP += template_Infomation.magicPower;
+            switch (template_Infomation.unitType)
             {
-                case Match3G_Template_Unit_Numerical.UnitType.baseAttacker:
+                case Match3G_Template_Unit_Infomation.UnitType.baseAttacker:
                     group.Shake.ShakeObjectScale();
                     break;
-                case Match3G_Template_Unit_Numerical.UnitType.baseDefender:
+                case Match3G_Template_Unit_Infomation.UnitType.baseDefender:
                     group.Shake.ShakeObjectScale();
                     break;
-                case Match3G_Template_Unit_Numerical.UnitType.baseHealer:
+                case Match3G_Template_Unit_Infomation.UnitType.baseHealer:
                     group.Shake.ShakeObjectScale();
                     break;
-                case Match3G_Template_Unit_Numerical.UnitType.baseWizard:
+                case Match3G_Template_Unit_Infomation.UnitType.baseWizard:
                     group.Shake.ShakeObjectScale();
                     break;
                 default:
@@ -153,19 +154,20 @@ public class Match3G_Unit : MonoBehaviour
     }
     void Gain_Logic()
     {
-        gainScore.color = template_Numerical.color;
-        if(template_Numerical.healthPower > 0)
+        
+        gainScore.color = template_Infomation.color;
+        if(template_Infomation.healthPower > 0)
         {
-            gainScore.value = template_Numerical.healthPower;
-        }else if(template_Numerical.magicPower > 0)
+            gainScore.value = template_Infomation.healthPower;
+        }else if(template_Infomation.magicPower > 0)
         {
-            gainScore.value = template_Numerical.magicPower;
-        }else if(template_Numerical.attackPower > 0)
+            gainScore.value = template_Infomation.magicPower;
+        }else if(template_Infomation.attackPower > 0)
         {
-            gainScore.value = template_Numerical.attackPower;
-        }else if(template_Numerical.armorPower > 0)
+            gainScore.value = template_Infomation.attackPower;
+        }else if(template_Infomation.armorPower > 0)
         {
-            gainScore.value = template_Numerical.armorPower;
+            gainScore.value = template_Infomation.armorPower;
         }
     }
     public float Fall (float toY, float speed)
@@ -181,7 +183,7 @@ public class Match3G_Unit : MonoBehaviour
     Tween backTween_PostProcess;
     public int MoveToHealthBar(Vector3 pos,Match3G_Group to,int index = 0)
     {
-        int attackValue = 1 + template_Numerical.attackPower;
+        int attackValue = 1 + template_Infomation.attackPower;
         int offset = to.groupType == Match3G_GroupInfo.GroupType.GroupA ? -3 : 3;
         float RandomX = Random.Range(-0.12f,0.12f);
         float RandomY = Random.Range(-0.12f,0.12f);
@@ -195,7 +197,7 @@ public class Match3G_Unit : MonoBehaviour
                 ParticleLoader.Instance.PlayParticleTemp(Particle_Hit,pos, new Vector3(-90,0,0));
                 to.Numerical.CurrentHP = -attackValue;
                 Shake shakeCam = Camera.main.GetComponent<Shake>();
-                shakeCam.Shake_strength += 0.005f * (float)index;
+                shakeCam.Shake_strength += 0.0015f * (float)index;
                 shakeCam.ShakeObjectPosition();
                 string Explosion = "Match3G_wav/Explosion";
                 Sound.Instance.PlaySoundTemp(Explosion);

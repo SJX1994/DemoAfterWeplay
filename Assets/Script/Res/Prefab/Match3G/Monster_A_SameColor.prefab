@@ -326,7 +326,7 @@ MonoBehaviour:
     m_Bits: 65536
   targetMask_base:
     serializedVersion: 2
-    m_Bits: 262144
+    m_Bits: 524288
   number: 2
 --- !u!114 &-5414676783059800620
 MonoBehaviour:

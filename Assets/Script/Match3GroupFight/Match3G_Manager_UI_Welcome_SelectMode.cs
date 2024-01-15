@@ -4,7 +4,7 @@ using UnityEngine;
 using DG.Tweening;
 using UnityEngine.UI;
 using Match3G_PlayerData;
-public class Match3G_Manager_Welcome_SelectMode : MonoBehaviour
+public class Match3G_Manager_UI_Welcome_SelectMode : MonoBehaviour
 {
     RectTransform rectTransform_self;
     RectTransform RectTransform_Self
@@ -55,7 +55,7 @@ public class Match3G_Manager_Welcome_SelectMode : MonoBehaviour
         }
     }
     Tween tween_Self;
-    public bool showing = false;
+    bool showing = false;
     private void Start()
     {
         Button_2P.onClick.AddListener(On2P_ButtonClick);
@@ -90,6 +90,16 @@ public class Match3G_Manager_Welcome_SelectMode : MonoBehaviour
     }
    public void ShowUp()
    {
+    foreach (var item in Match3G_GroupInfo.UI.Welcom_SubUIs)
+    {
+        if(item.activeSelf)
+        {
+            item.TryGetComponent(out Match3G_Manager_UI_Welcome_SelectMode subUI);
+            if(subUI)subUI.Hide();
+            item.TryGetComponent(out Match3G_Manager_UI_Welcom_Rules subUI2);
+            if(subUI2)subUI2.Hide();
+        }
+    }
     if(showing)return;
     showing = true;
     gameObject.SetActive(showing);

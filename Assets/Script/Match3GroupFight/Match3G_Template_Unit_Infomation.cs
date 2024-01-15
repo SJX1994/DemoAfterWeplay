@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "DemoAfterWeplay/Match3G_Template_Unit_Numerical")]
-public class Match3G_Template_Unit_Numerical : ScriptableObject
+public class Match3G_Template_Unit_Infomation : ScriptableObject
 {
     public enum UnitType
     {
@@ -13,6 +13,7 @@ public class Match3G_Template_Unit_Numerical : ScriptableObject
     public UnitType unitType;
     public Color color = Color.white;
     public string unitDescribe;
+    public string unitDescribe_detailed;
     [Tooltip("攻击加成")]
     [SerializeField]
     public int attackPower = 1;

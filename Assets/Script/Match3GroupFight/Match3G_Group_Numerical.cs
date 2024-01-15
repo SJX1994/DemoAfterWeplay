@@ -124,6 +124,7 @@ public class Match3G_Group_Numerical : MonoBehaviour
     [SerializeField]
     public int maxMP; // Magic Point
     int currentMP;
+   
     public int CurrentMP 
     { 
         get 
@@ -132,25 +133,22 @@ public class Match3G_Group_Numerical : MonoBehaviour
         } 
         set 
         { 
-            if(Match3G_GroupInfo.Game.Flow.haveHero)
+           
+            currentMP = value;
+            bool haveHeroB = Match3G_GroupInfo.Game.Flow.haveHeroB;
+            bool haveHeroA = Match3G_GroupInfo.Game.Flow.haveHeroA;
+            if(groupType == Match3G_GroupInfo.GroupType.GroupB && haveHeroB)
             {
                 currentMP = 0;
                 enegyMultiplier = 1;
-                if(groupType == Match3G_GroupInfo.GroupType.GroupB)
-                {
-                    Match3G_GroupInfo.match3G_SavingData_round_red.useHeroTimes++;
-                }
-                else
-                {
-                    // TODO Ai使用英雄
-                    Match3G_GroupInfo.match3G_SavingData_round_blue.useHeroTimes++;
-                }
+                Match3G_GroupInfo.match3G_SavingData_round_red.useHeroTimes++;
             }
-            else
+            if(groupType == Match3G_GroupInfo.GroupType.GroupA && haveHeroA)
             {
-                currentMP = value;
+                currentMP = 0;
+                enegyMultiplier = 1;
+                Match3G_GroupInfo.match3G_SavingData_round_blue.useHeroTimes++;
             }
-            
             if(currentMP>maxMP)currentMP = maxMP;
             TextMeshMP.text = currentMP.ToString() + "/" + maxMP.ToString() + ":MP";
             Group.Egg.CompletedLight.intensity = (float)currentMP / (float)maxMP * 5f;
@@ -236,7 +234,7 @@ public class Match3G_Group_Numerical : MonoBehaviour
 			value = valueIn * enegyMultiplier++
 		};
 		enegys.Add(score);
-        Match3G_GroupInfo.match3G_SavingData_temp.highScore += score.value;
+        
         if(groupType == Match3G_GroupInfo.GroupType.GroupA)
         {
             Match3G_GroupInfo.match3G_SavingData_round_blue.highScore += score.value;
@@ -244,6 +242,7 @@ public class Match3G_Group_Numerical : MonoBehaviour
         else
         {
             Match3G_GroupInfo.match3G_SavingData_round_red.highScore += score.value;
+            Match3G_GroupInfo.match3G_SavingData_temp.highScore += score.value;
         }
     }
     void AddEnegy_View(Match3G_Egg target)

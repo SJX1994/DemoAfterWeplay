@@ -46,6 +46,8 @@ namespace Match3G_PlayerData
         public const string highScoreKey = "highScore";
         public float totalPlayTime;
         public const string totalPlayTimeKey = "totalPlayTime";
+        
+
 
         public Match3G_SavingData(string macName, int mergeTimes, int totalKillNumbers, int useHeroTimes, int highScore, float totalPlayTime)
         {
@@ -71,6 +73,7 @@ namespace Match3G_PlayerData
         public static Match3G_SavingData match3G_SavingData_temp;
         public static Match3G_SavingData match3G_SavingData_round_red;
         public static Match3G_SavingData match3G_SavingData_round_blue;
+        public static float globalTimeScale = 1f;
         public enum PlayMode
         {
             Hard,

@@ -3,6 +3,7 @@ using DG.Tweening;
 using Match3G_PlayerData;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 
 public class Match3G_Base : MonoBehaviour
 {
@@ -62,6 +63,21 @@ public class Match3G_Base : MonoBehaviour
             return outLine;
         }
     }
+    public void SetCollider(bool value)
+    {
+       transform.GetComponent<BoxCollider>().enabled = value;
+    }
+    public TileState FindGrid(int2 posID)
+    {
+        if(groupType == Match3G_GroupInfo.GroupType.GroupA)
+        {
+            return Match3G_GroupInfo.Game.GroupA.Grid[posID.x,posID.y];
+        }else if(groupType == Match3G_GroupInfo.GroupType.GroupB)
+        {
+            return Match3G_GroupInfo.Game.GroupB.Grid[posID.x,posID.y];
+        }
+        return TileState.None;
+    }
     public void Display_BasesCheckerboard()
     {
         GameObject Base1 = SpriteRenderers_basesCheckerboard.transform.Find("Base1").gameObject;
@@ -88,12 +104,14 @@ public class Match3G_Base : MonoBehaviour
             tweenScale = transform.DOScale(new Vector3(1f, 1f, 0.25f), 0.25f).OnComplete(()=>{
                 SpriteRenderers_basesCheckerboard.SetActive(true);
                 OutLine.SetActive(true);
+                
             });
         }else
         {
             transform.localScale = new Vector3(1f, 1f, 0.25f);
             tweenScale = transform.DOScale(new Vector3(0.0f, 0.0f, 0.0f), 0.25f).OnComplete(()=>{
                 MeshRenderer.enabled = value;
+
             });
         }
     }
@@ -115,11 +133,13 @@ public class Match3G_Base : MonoBehaviour
         if(posID.y >= rangeMin && posID.y <= rangeMax)
         {
             MeshRendererSet(true);
+            // SetCollider(true);
         }else
         {
             MeshRenderer.enabled = false;
             SpriteRenderers_basesCheckerboard.SetActive(false);
             OutLine.SetActive(false);
+            // SetCollider(false);
         }
         Vector3 midPosTemp = midPos;
         midPosTemp.z -= 0.5f;
@@ -145,11 +165,13 @@ public class Match3G_Base : MonoBehaviour
             MeshRenderer.enabled = true;
             SpriteRenderers_basesCheckerboard.SetActive(true);
             OutLine.SetActive(true);
+            // SetCollider(true);
         }else
         {
             MeshRenderer.enabled = false;
             SpriteRenderers_basesCheckerboard.SetActive(false);
             OutLine.SetActive(false);
+            // SetCollider(false);
         }
         // gameObject.SetActive(true);
         // MeshRenderer.enabled = true;

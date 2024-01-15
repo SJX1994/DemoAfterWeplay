@@ -27,12 +27,22 @@ public class Match3G_Manager_Flow : MonoBehaviour
     private float roundWaitTime_Total = 1.5f;
     bool started = false;
     public bool automaticPlay = false;
-    public bool haveHero => Game.GroupB.Egg.PairedHero && !Game.GroupB.Egg.EggRenderer.enabled;
-    bool heroUsing  
+    public bool haveHeroB => Game.GroupB.Egg.PairedHero && !Game.GroupB.Egg.EggRenderer.enabled;
+    public bool haveHeroA => Game.GroupA.Egg.PairedHero && !Game.GroupA.Egg.EggRenderer.enabled;
+    public bool readyHeroB => Game.GroupB.Numerical.CurrentMP >= Game.GroupB.Numerical.maxMP && Game.GroupB.Egg.EggRenderer.enabled;
+    public bool readyHeroA => Game.GroupA.Numerical.CurrentMP >= Game.GroupA.Numerical.maxMP && Game.GroupA.Egg.EggRenderer.enabled;
+    bool heroUsingB  
     {
         get{
             if(!Game.GroupB.Egg.PairedHero)return false;
             return Game.GroupB.Egg.PairedHero.OnUsing;
+        }
+    }
+    bool heroUsingA  
+    {
+        get{
+            if(!Game.GroupA.Egg.PairedHero)return false;
+            return Game.GroupA.Egg.PairedHero.OnUsing;
         }
     }
     private float gameStartTime;
@@ -80,7 +90,7 @@ public class Match3G_Manager_Flow : MonoBehaviour
         Match3G_GroupInfo.match3G_SavingData_round_red = new("", 0, 0, 0, 0, 0f);
         Match3G_GroupInfo.match3G_SavingData_round_blue = new("", 0, 0, 0, 0, 0f);
         gameStartTime = Time.time;
-        Time.timeScale = 1;
+        Time.timeScale = Match3G_GroupInfo.globalTimeScale;
 
     }
     void Start_OnGUI()
@@ -165,11 +175,31 @@ public class Match3G_Manager_Flow : MonoBehaviour
         {
             fsm.ChangeState(States.HeroIntroduce);
         }
-        if(automaticPlay && haveHero && !Game.IsBusy)
+        if(!automaticPlay && (readyHeroB || readyHeroA) && !Game.IsBusy)
+        {
+            fsm.ChangeState(States.HeroIntroduce);
+        }
+        if(automaticPlay && haveHeroB && !Game.IsBusy)
         {
             Game.GroupB.Egg.PairedHero.Match3G_Egg_Hero_Update();
         }
-        if(automaticPlay && heroUsing && !Game.IsBusy)
+        if(automaticPlay && heroUsingB && !Game.IsBusy)
+        {
+            fsm.ChangeState(States.HeroOnStage);
+        }
+        if(!automaticPlay && ( haveHeroB || haveHeroA ) && !Game.IsBusy)
+        {
+            Match3G_Group group = Game.WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA ? Game.GroupA : Game.GroupB;
+            if(group == Game.GroupA && haveHeroA)
+            {
+                group.Egg.PairedHero.Match3G_Egg_Hero_Update();
+            }
+            if(group == Game.GroupB && haveHeroB)
+            {
+                group.Egg.PairedHero.Match3G_Egg_Hero_Update();
+            }
+        }
+        if(!automaticPlay && ( heroUsingB || heroUsingA) && !Game.IsBusy)
         {
             fsm.ChangeState(States.HeroOnStage);
         }
@@ -214,27 +244,41 @@ public class Match3G_Manager_Flow : MonoBehaviour
     {
         string Lollipop = "Match3G_wav/Lollipop";
         Sound.Instance.PlaySoundTemp(Lollipop);
-        Game.GroupB.Egg.PairedHero.Match3G_Egg_Hero_Using_Enter();
+        Match3G_Group group = Game.WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA ? Game.GroupA : Game.GroupB;
+        if(group == Game.GroupB && heroUsingB)Game.GroupB.Egg.PairedHero.Match3G_Egg_Hero_Using_Enter();
+        if(group == Game.GroupA && heroUsingA)Game.GroupA.Egg.PairedHero.Match3G_Egg_Hero_Using_Enter();
     }
     void HeroOnStage_Update()
     {
-        if(!Game.GroupB.Egg.PairedHero)return;
-        Game.GroupB.Egg.PairedHero.Match3G_Egg_Hero_Using_Update();
+        Match3G_Group group = Game.WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA ? Game.GroupA : Game.GroupB;
+        if(!group.Egg.PairedHero)return;
+        group.Egg.PairedHero.Match3G_Egg_Hero_Using_Update();
         Game.Match.Match_Update();
-        if(haveHero)return;
+        if(group == Game.GroupB && haveHeroB)return;
+        if(group == Game.GroupA && haveHeroA)return;
         fsm.ChangeState(States.AddEnergy);
     }
     void HeroIntroduce_Enter()
     {
-        Game.GroupB.Numerical.CurrentMP = 0;
-        Game.GroupB.Egg.HatchingCompleted();
+        Match3G_Group group = Game.WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA ? Game.GroupA : Game.GroupB;
+        if(group == Game.GroupB && readyHeroB)
+        {
+            Game.GroupB.Numerical.CurrentMP = 0;
+            Game.GroupB.Egg.HatchingCompleted();
+        }
+        if(group == Game.GroupA && readyHeroA)
+        {
+            Game.GroupA.Numerical.CurrentMP = 0;
+            Game.GroupA.Egg.HatchingCompleted();
+        }
         
     }
     void HeroIntroduce_Update()
     {
-        if(!Game.GroupB.Egg.PairedHero)return;
-        Game.GroupB.Egg.PairedHero.Match3G_Egg_Hero_Update();
-        if(Game.GroupB.Egg.EggRenderer.enabled)return;
+        Match3G_Group group = Game.WhichGroupTurn == Match3G_GroupInfo.GroupType.GroupA ? Game.GroupA : Game.GroupB;
+        if(!group.Egg.PairedHero)return;
+        group.Egg.PairedHero.Match3G_Egg_Hero_Update();
+        if(!group.Egg.PairedHero.ScaledDown)return;
         fsm.ChangeState(States.AddEnergy);
     }
     void Settlement_Enter()

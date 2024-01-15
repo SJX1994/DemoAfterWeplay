@@ -68,8 +68,9 @@ public class Match3G_Egg : MonoBehaviour
     {
         originalScale = transform.localScale;
         hideTween?.Kill();
-        hideTween = transform.DOScale(0.1f,0.5f).SetEase(Ease.InSine);
-        hideTween.onComplete += () => EggRenderer.enabled = false;
+        EggRenderer.enabled = false;
+        // hideTween = transform.DOScale(0.1f,0.5f).SetEase(Ease.InSine);
+        // hideTween.onComplete += () => EggRenderer.enabled = false;
     }
     // 待启用
     void KeepEggMove(Vector3 mousePos)

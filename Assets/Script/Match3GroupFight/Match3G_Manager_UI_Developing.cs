@@ -18,16 +18,16 @@ public class Match3G_Manager_UI_Developing : MonoBehaviour
          return rectTransform_dev;
     }
   }
-  float timeScale = 1;
+  float TempTimeScale = 1;
   public void DoubleSpeed(bool isDouble)
   {
     if(isDouble)
     {
-      timeScale = 2;
+      TempTimeScale = 2;
     }
     else
     {
-      timeScale = 1;
+      TempTimeScale = 1;
     }
   }
   public void DevelpingShow()
@@ -35,6 +35,7 @@ public class Match3G_Manager_UI_Developing : MonoBehaviour
     string Package = "Match3G_wav/Package";
     Sound.Instance.PlaySoundTemp(Package);
     //Match3G_GroupInfo.ShowMask = true;
+    Match3G_GroupInfo.globalTimeScale = 0;
     Time.timeScale = 0;
     gameObject.SetActive(true);
     RectTransform_dev.gameObject.SetActive(true);
@@ -44,7 +45,8 @@ public class Match3G_Manager_UI_Developing : MonoBehaviour
     string Swishe_banner_02 = "Match3G_wav/Swishe_banner_02";
     Sound.Instance.PlaySoundTemp(Swishe_banner_02);
     //Match3G_GroupInfo.ShowMask = false; 
-    Time.timeScale = timeScale;
+    Match3G_GroupInfo.globalTimeScale = TempTimeScale;
+    Time.timeScale = TempTimeScale;
     gameObject.SetActive(false);
     RectTransform_dev.gameObject.SetActive(false);
   }
